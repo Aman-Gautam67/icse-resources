@@ -19,11 +19,21 @@ export function collectLibraryFiles(node: FileNode, parents: string[] = []): Lib
 export function getLibraryCategories(node: FileNode): LibraryCategory[] {
   const children = node.children || [];
   const files = children.filter(child => child.type === 'file').flatMap(child => collectLibraryFiles(child));
-  return [
-    ...(files.length ? [{ name: 'Notes, guides & question banks', files, count: files.length }] : []),
-    ...children.filter(child => child.type === 'folder').map(child => {
-      const files = collectLibraryFiles(child);
-      return { name: child.name, files, count: files.length };
-    }),
-  ].filter(category => category.count > 0);
+  const categories: LibraryCategory[] = files.length ? [{ name: 'Notes, guides & question banks', files, count: files.length }] : [];
+  const samplePapers: LibraryFile[] = [];
+  const sampleSolutions: LibraryFile[] = [];
+  for (const child of children.filter(child => child.type === 'folder')) {
+    const remaining: LibraryFile[] = [];
+    for (const file of collectLibraryFiles(child)) {
+      const folders = file.path.split('/').map(folder => folder.trim());
+      if (folders.some(folder => /^sample papers?$/i.test(folder))) {
+        // Use the original folder structure; a solved question paper is still a paper.
+        (folders.some(folder => /^solutions?(?:\s+view)?$/i.test(folder)) ? sampleSolutions : samplePapers).push(file);
+      } else remaining.push(file);
+    }
+    if (remaining.length) categories.push({ name: child.name, files: remaining, count: remaining.length });
+  }
+  if (samplePapers.length) categories.push({ name: 'Sample Papers', files: samplePapers, count: samplePapers.length });
+  if (sampleSolutions.length) categories.push({ name: 'Sample Paper Solutions', files: sampleSolutions, count: sampleSolutions.length });
+  return categories;
 }

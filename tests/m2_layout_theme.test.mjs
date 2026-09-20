@@ -204,7 +204,7 @@ test('Header renders site title and logo linking to /', () => {
 });
 
 test('Built desktop and mobile navigation link to every core section', () => {
-  const html = fs.readFileSync(path.join(ROOT, 'dist/index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'dist/study-materials/index.html'), 'utf8');
   const dom = new JSDOM(html);
   try {
     const header = dom.window.document.querySelector('header');
@@ -242,7 +242,7 @@ test('Shared AppModals handles Ctrl+K and Cmd+K without a duplicate header short
     const html = fs.readFileSync(path.join(ROOT, 'dist', page), 'utf8');
     const dom = new JSDOM(html);
     try {
-      assert.equal(dom.window.document.querySelectorAll('#app-modals-root').length, 1, `${page} must mount the shared dialogs exactly once`);
+      assert.equal(dom.window.document.querySelectorAll('#app-modals-root').length, page === 'index.html' ? 0 : 1, `${page} must mount dialogs only after class selection`);
     } finally {
       dom.window.close();
     }

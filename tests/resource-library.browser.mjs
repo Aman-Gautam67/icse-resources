@@ -26,10 +26,17 @@ async function noOverflow() { expect(await page.evaluate(() => document.document
 try {
   await page.goto(`${base}/`);
   await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(4);
+  await expect(page.locator('#site-header, #app-modals-root, #resource-search')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Your class.');
   await page.screenshot({ path: path.join(screenshots, 'home-desktop.png'), fullPage: true, animations: 'disabled' });
-  await page.goto(`${base}/study-materials`);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow();
+  await page.screenshot({ path: path.join(screenshots, 'home-mobile.png'), fullPage: true, animations: 'disabled' });
+  await page.setViewportSize({ width: 1366, height: 1000 });
+  await page.locator('[data-class-link="10"]').click();
   await ready();
-  await expect(page.locator('#subject-title')).toContainText('Biology');
+  await expect(page.locator('#subject-title')).toContainText('Featured books');
+  await expect(page.locator('.library-subjects .subject-icon')).toHaveCount(12);
   await page.getByRole('navigation', { name: 'Class 10 subjects' }).getByRole('link', { name: /Physics/ }).click();
   await expect(page.locator('#subject-title')).toContainText('Physics');
   const guides = page.locator('.library-category').first();
@@ -42,14 +49,22 @@ try {
   const papers = page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Papers', exact: true }) });
   await papers.locator('summary').click();
   await expect(papers.locator('.library-files a')).toHaveCount(3);
-  for (let i = 0; i < 3; i++) await papers.getByRole('button', { name: /Show more/ }).click();
-  await expect(papers.locator('.library-files a')).toHaveCount(53);
+  await papers.getByRole('button', { name: /Show more/ }).click();
+  await expect(papers.locator('.library-files a')).toHaveCount(23);
+  await expect(papers.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(0);
+  const solutions = page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Paper Solutions', exact: true }) });
+  await solutions.locator('summary').click();
+  for (let i = 0; i < 2; i++) await solutions.getByRole('button', { name: /Show more/ }).click();
+  await expect(solutions.locator('.library-files a')).toHaveCount(30);
+  await expect(solutions.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(30);
+  await solutions.getByRole('button', { name: 'Show less' }).click();
+  await solutions.locator('summary').click();
   await papers.getByRole('button', { name: 'Show less' }).click();
   await papers.locator('summary').click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(screenshots, 'resources-desktop-light.png'), fullPage: true, animations: 'disabled' });
   await page.goBack();
-  await expect(page.locator('#subject-title')).toContainText('Biology');
+  await expect(page.locator('#subject-title')).toContainText('Featured books');
   await page.goForward();
   await expect(page.locator('#subject-title')).toContainText('Physics');
   await page.getByRole('searchbox', { name: 'Search all Class 10 resources' }).fill('physics vatsal');
@@ -86,9 +101,12 @@ try {
       await expect(page.locator('#mobile-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
     }
     if (width === 360) {
-      await page.getByLabel('Choose a subject', { exact: true }).selectOption('maths');
+      const subjectStrip = page.getByRole('navigation', { name: 'Class 10 subjects' });
+      expect(await subjectStrip.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+      await expect(page.locator('#mobile-subject')).toHaveCount(0);
+      await subjectStrip.getByRole('link', { name: /Maths/ }).click();
       await expect(page.locator('#subject-title')).toContainText('Maths');
-      await page.getByLabel('Choose a subject', { exact: true }).selectOption('physics');
+      await subjectStrip.getByRole('link', { name: /Physics/ }).click();
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({ path: path.join(screenshots, 'resources-mobile-light.png'), fullPage: true, animations: 'disabled' });
     }

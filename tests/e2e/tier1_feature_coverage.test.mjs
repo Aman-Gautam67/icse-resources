@@ -10,24 +10,23 @@ describe('Tier 1: Feature Coverage - Route 1: Home Page (/)', () => {
     expect(html.length).toBeGreaterThan(1500);
   });
 
-  it('should contain semantic h1 heading for the application title', () => {
+  it('should introduce class selection with a semantic heading', () => {
     const html = readHtmlFile('/');
-    expect(html).toMatch(/<h1[^>]*>[\s\S]*?ICSE[\s\S]*?<\/h1>/i);
+    expect(html).toMatch(/<h1[^>]*>[\s\S]*?Your class[\s\S]*?<\/h1>/i);
   });
 
-  it('should contain static navigation links to core sections', () => {
+  it('should offer all four classes before resource navigation', () => {
     const html = readHtmlFile('/');
-    expect(html).toMatch(/href="\/study-materials"/);
-    expect(html).toMatch(/href="\/cisce"/);
-    expect(html).toMatch(/href="\/quizzes"/);
+    for (const grade of [12, 11, 10, 9]) expect(html).toContain(`href="/study-materials?class=${grade}"`);
+    expect(html).not.toContain('id="site-header"');
   });
 
-  it('should display subject preview cards with readable text in raw source', () => {
+  it('should reserve subjects and resource search for after class selection', () => {
     const html = readHtmlFile('/');
-    expect(html).toContain('Biology');
-    expect(html).toContain('Chemistry');
-    expect(html).toContain('Physics');
-    expect(html).toContain('Maths');
+    expect(html).toContain('Available now');
+    expect(html).toContain('Coming soon');
+    expect(html).not.toContain('id="resource-search"');
+    expect(html).not.toContain('id="app-modals-root"');
   });
 
   it('should contain essential SEO meta tags in head', () => {

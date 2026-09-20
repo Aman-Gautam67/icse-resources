@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, ArrowUp, BookOpen, Check, ChevronDown, Clock3, FileText, FolderOpen, Search, X } from 'lucide-react';
 import { collectLibraryFiles, getLibraryCategories, type LibraryCategory, type LibraryFile, type LibrarySubject } from '../../lib/resource-library';
 import type { FileNode } from '../../lib/schemas';
+import SubjectIcon from './SubjectIcon';
 import './resource-library.css';
 
 const PREVIEW_COUNT = 3;
@@ -54,17 +55,20 @@ function Category({ category, index, subject, loaded }: { category: LibraryCateg
 }
 
 export default function ResourceLibrary({ subjects: initialSubjects }: { subjects: LibrarySubject[] }) {
+  const defaultSlug = initialSubjects.find(subject => subject.slug === 'featured')?.slug || initialSubjects[0]?.slug || '';
   const [subjects, setSubjects] = useState(initialSubjects);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retry, setRetry] = useState(0);
   const [grade, setGrade] = useState('10');
-  const [activeSlug, setActiveSlug] = useState(initialSubjects[0]?.slug || '');
+  const [activeSlug, setActiveSlug] = useState(defaultSlug);
   const [query, setQuery] = useState('');
   const [searchScope, setSearchScope] = useState('all');
   const searchRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const subjectNavRef = useRef<HTMLElement>(null);
   const activeSubject = subjects.find(subject => subject.slug === activeSlug) || subjects[0];
+  const navSubjects = useMemo(() => [...subjects].sort((a, b) => Number(b.slug === 'featured') - Number(a.slug === 'featured')), [subjects]);
   const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
   const isSearching = normalize(query).length > 0;
 
@@ -97,7 +101,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
       setGrade(nextGrade);
       const slug = window.location.hash.slice(1);
       if (initialSubjects.some(subject => subject.slug === slug)) { setActiveSlug(slug); setQuery(''); }
-      else if (!slug) { setActiveSlug(initialSubjects[0]?.slug || ''); setQuery(''); }
+      else if (!slug) { setActiveSlug(defaultSlug); setQuery(''); }
       document.querySelectorAll<HTMLAnchorElement>('[data-class-link]').forEach(link => {
         if (link.dataset.classLink === nextGrade) link.setAttribute('aria-current', 'page');
         else link.removeAttribute('aria-current');
@@ -107,7 +111,14 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
     window.addEventListener('popstate', syncLocation);
     window.addEventListener('hashchange', syncLocation);
     return () => { window.removeEventListener('popstate', syncLocation); window.removeEventListener('hashchange', syncLocation); };
-  }, [initialSubjects]);
+  }, [initialSubjects, defaultSlug]);
+
+  useEffect(() => {
+    if (window.innerWidth >= 900) return;
+    const nav = subjectNavRef.current;
+    const selected = nav?.querySelector<HTMLElement>('[aria-current]');
+    if (nav && selected) nav.scrollLeft = selected.offsetLeft - (nav.clientWidth - selected.offsetWidth) / 2;
+  }, [activeSlug, isSearching]);
 
   const searchIndex = useMemo(() => subjects.flatMap(subject => subject.categories.flatMap(category => category.files.map(file => ({
     file, subject: subject.name, slug: subject.slug, category: category.name,
@@ -139,8 +150,8 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
     {!loaded && <div className="library-load-status" role="status">{loadError ? <>The full library couldn’t load. File previews are still available. <button type="button" onClick={() => setRetry(retry + 1)}>Try again</button></> : 'Loading the full library for search and more files…'}</div>}
     <div className="library-layout">
       <aside className="library-sidebar" aria-label="Subject navigation"><div className="library-sidebar-title"><span>CHOOSE A SUBJECT</span><span>{subjects.filter(subject => subject.slug !== 'featured').length}</span></div>
-        <div className="library-mobile-selector"><label htmlFor="mobile-subject">Choose a subject</label><select id="mobile-subject" value={activeSlug} onChange={event => chooseSubject(event.target.value, true)}>{subjects.map(subject => <option key={subject.slug} value={subject.slug}>{subject.name} ({subject.count.toLocaleString()})</option>)}</select></div>
-        <nav className="library-subjects" aria-label="Class 10 subjects">{subjects.map((subject, index) => <a key={subject.slug} href={`#${subject.slug}`} aria-current={!isSearching && subject.slug === activeSlug ? 'true' : undefined} onClick={event => { if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return; event.preventDefault(); chooseSubject(subject.slug, window.innerWidth < 900); }}><span className="library-subject-number">{subject.slug === 'featured' ? '★' : String(index + 1).padStart(2, '0')}</span><span>{subject.name}</span><span className="library-subject-count">{subject.count.toLocaleString()}</span>{!isSearching && subject.slug === activeSlug && <Check size={14} aria-hidden="true" />}</a>)}</nav>
+        <div className="library-scroll-hint">Swipe to explore subjects <ArrowRight size={13} aria-hidden="true" /></div>
+        <nav ref={subjectNavRef} className="library-subjects" aria-label="Class 10 subjects">{navSubjects.map(subject => <a key={subject.slug} data-subject={subject.slug} href={`#${subject.slug}`} aria-current={!isSearching && subject.slug === activeSlug ? 'true' : undefined} onClick={event => { if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return; event.preventDefault(); chooseSubject(subject.slug, window.innerWidth < 900); }}><SubjectIcon subject={subject.slug} /><span>{subject.name}</span><span className="library-subject-count">{subject.count.toLocaleString()}</span>{!isSearching && subject.slug === activeSlug && <Check size={14} aria-hidden="true" />}</a>)}</nav>
         <div className="library-sidebar-help"><BookOpen size={18} aria-hidden="true" /><strong>New here?</strong><p>Start with your subject’s notes, then try a practice paper.</p><a href="/cisce">Find the official syllabus <ArrowRight size={13} aria-hidden="true" /></a></div>
       </aside>
       <div className="library-content" ref={contentRef}>
@@ -149,7 +160,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
           <div className="library-search-filter"><label htmlFor="search-subject">Subject</label><select id="search-subject" value={searchScope} onChange={event => setSearchScope(event.target.value)}><option value="all">All subjects</option>{subjects.map(subject => <option key={subject.slug} value={subject.slug}>{subject.name}</option>)}</select></div>
           {results.length ? <FileList key={`${query}-${searchScope}`} id="search-result-files" files={results.map(result => ({ ...result.file, path: `${result.subject} / ${result.file.path || result.category}` }))} preview={12} /> : <div className="library-empty"><Search size={28} aria-hidden="true" /><h3>{loaded ? 'No matching resources yet' : 'The full library is still loading'}</h3><p>{loaded ? 'Try a shorter phrase like “electricity”, check the spelling, or search another subject.' : 'Your search will update when the library is ready.'}</p><button type="button" className="library-more-button" onClick={() => { setSearchScope('all'); setQuery(''); searchRef.current?.focus(); }}>Clear search and start again</button></div>}
         </section> : activeSubject && <section key={activeSubject.slug} id={activeSubject.slug} aria-labelledby="subject-title">
-          <div className="library-content-heading"><div><span className="library-eyebrow">CLASS 10 / STUDY MATERIALS</span><h2 id="subject-title">{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
+          <div className="library-content-heading"><div><span className="library-eyebrow">CLASS 10 / STUDY MATERIALS</span><h2 id="subject-title"><SubjectIcon subject={activeSubject.slug} />{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
           <div className="library-category-help"><span><FolderOpen size={15} aria-hidden="true" /> {activeSubject.categories.length} {activeSubject.categories.length === 1 ? 'category' : 'categories'}</span><span>Open a category to explore its files</span></div>
           <div className="library-categories">{activeSubject.categories.map((category, index) => <Category key={`${activeSubject.slug}-${index}`} category={category} index={index} subject={activeSubject.slug} loaded={loaded} />)}</div>
           {!activeSubject.count && <div className="library-empty"><h3>Resources are being added</h3><p>Choose another subject to keep exploring.</p></div>}

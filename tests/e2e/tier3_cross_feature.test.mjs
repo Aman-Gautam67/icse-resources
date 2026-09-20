@@ -36,13 +36,13 @@ describe('Tier 3: Cross-Feature - Combination 1: Theme Toggle + Static Pages', (
 describe('Tier 3: Cross-Feature - Combination 2: Spotlight Search Modal + Preview Links', () => {
   const searchIndex = readJsonData('search-index.json');
 
-  it('should mount SearchModal island with client:idle directive', () => {
-    const html = readHtmlFile('/');
+  it('should mount search on the resource page after class selection', () => {
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/<astro-island[^>]+client="idle"[^>]*>|<button[^>]*>[\s\S]*?(Search|Ctrl\+K)[\s\S]*?<\/button>/i);
   });
 
   it('should support global keyboard shortcut Ctrl+K / Meta+K event registration', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(ctrlKey|metaKey|key === ['"]k['"]|app:open-modal)/i);
   });
 
@@ -59,7 +59,7 @@ describe('Tier 3: Cross-Feature - Combination 2: Spotlight Search Modal + Previe
   });
 
   it('should integrate with cross-island event bus (app:open-modal)', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(app:open-modal|open-modal|dispatchEvent)/i);
   });
 });
@@ -68,11 +68,12 @@ describe('Tier 3: Cross-Feature - Combination 3: Data Baking + Static Route Navi
   const studyData = readJsonData('study-materials.json');
   const cisceData = readJsonData('cisce-resources.json');
 
-  it('should render subject cards on home page linking to /study-materials', () => {
+  it('should link class selection to the subject browser', () => {
     const html = readHtmlFile('/');
-    expect(html).toMatch(/href="\/study-materials"/);
-    expect(html).toContain('Biology');
-    expect(html).toContain('Physics');
+    expect(html).toContain('href="/study-materials?class=10"');
+    const library = readHtmlFile('/study-materials');
+    expect(library).toContain('Biology');
+    expect(library).toContain('Physics');
   });
 
   it('should bake study materials directly without requiring runtime client API fetch on initial paint', () => {
@@ -125,8 +126,8 @@ describe('Tier 3: Cross-Feature - Combination 4: Global Header & Footer + Compli
     }
   });
 
-  it('should include required AdSense compliance links (/privacy, /about, /contact) in footer across all pages', () => {
-    const routes = ['/', '/study-materials', '/cisce', '/quizzes'];
+  it('should include compliance links on content pages after class selection', () => {
+    const routes = ['/study-materials', '/cisce', '/quizzes'];
     for (const route of routes) {
       const html = readHtmlFile(route);
       expect(html).toMatch(/href="\/privacy"/);
@@ -135,36 +136,36 @@ describe('Tier 3: Cross-Feature - Combination 4: Global Header & Footer + Compli
     }
   });
 
-  it('should contain main navigation links in header across all pages', () => {
-    const html = readHtmlFile('/');
+  it('should contain main navigation on resource pages', () => {
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/<header[\s\S]*?href="\/study-materials"[\s\S]*?<\/header>/i);
     expect(html).toMatch(/<header[\s\S]*?href="\/cisce"[\s\S]*?<\/header>/i);
   });
 
   it('should include theme toggle and search triggers in header layout', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/<header[\s\S]*?(theme|search|k)[\s\S]*?<\/header>/i);
   });
 });
 
 describe('Tier 3: Cross-Feature - Combination 5: Modal Coordinator + Cross-Island Communication', () => {
-  it('should mount modal coordinator or modal island container with client:idle', () => {
-    const html = readHtmlFile('/');
+  it('should mount modal coordinator on the resource page', () => {
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(astro-island|AppModals|client="idle"|data-modal)/i);
   });
 
   it('should support search modal activation via custom event or button click', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(search|Ctrl\+K|modal)/i);
   });
 
   it('should support donate modal with UPI QR code reference (/upi_qr.png)', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(\/upi_qr\.png|donate|upi)/i);
   });
 
   it('should support info modal with GitHub project repository references', () => {
-    const html = readHtmlFile('/');
+    const html = readHtmlFile('/study-materials');
     expect(html).toMatch(/(github\.com|Jivaansh|icse-resources|info)/i);
   });
 
