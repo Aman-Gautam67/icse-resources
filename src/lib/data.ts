@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { catalogMaterials, subjectSlug } from "./resource-catalog.mjs";
 import { type FileNode, validateResourcesData } from "./schemas";
 
 export interface SubjectSummary {
@@ -8,6 +9,13 @@ export interface SubjectSummary {
   path: string;
   icon: string;
   description: string;
+}
+
+export function getAvailableClassesSync(): string[] {
+  const filename = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
+  if (!fs.existsSync(filename)) return ['10'];
+  const catalog = JSON.parse(fs.readFileSync(filename, 'utf8'));
+  return Object.keys(catalog.classes || {}).filter(grade => countFiles(catalogMaterials(catalog, grade)) > 0);
 }
 
 const SUBJECT_METADATA: Record<string, { icon: string; description: string; slug: string }> = {
@@ -95,6 +103,8 @@ function resolveDataPath(filename: string): string {
  * Synchronously loads and validates study materials JSON data
  */
 export function getStudyMaterialsSync(): FileNode {
+  const catalogPath = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
+  if (fs.existsSync(catalogPath)) return validateResourcesData(catalogMaterials(JSON.parse(fs.readFileSync(catalogPath, 'utf8')), '10'));
   const filePath = resolveDataPath("study-materials.json");
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
@@ -134,7 +144,7 @@ export async function getCisceResources(): Promise<FileNode> {
 }
 
 /**
- * Extracts all 11 core subjects with file count, icon, path, and description
+ * Discovers subjects from the catalogue; known subjects get optional display metadata.
  */
 export function getSubjectSummary(studyMaterials?: FileNode): SubjectSummary[] {
   const materials = studyMaterials ?? getStudyMaterialsSync();
@@ -142,27 +152,14 @@ export function getSubjectSummary(studyMaterials?: FileNode): SubjectSummary[] {
 
   const results: SubjectSummary[] = [];
 
-  // Expected 11 subject order
-  const targetSubjects = [
-    "Biology",
-    "Chemistry",
-    "Physics",
-    "Maths",
-    "English",
-    "Geography",
-    "Hindi",
-    "History & Civics",
-    "Commercial Applications",
-    "Computer Applications",
-    "PYQ Prelims",
-  ];
+  const targetSubjects = folders.map(folder => folder.name);
 
   for (const name of targetSubjects) {
     const folder = folders.find((f) => f.name === name);
     const meta = SUBJECT_METADATA[name] || {
       icon: "BookOpen",
       description: `Study materials and notes for ${name}.`,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: subjectSlug(name),
     };
 
     const fileCount = folder ? countFiles(folder) : 0;

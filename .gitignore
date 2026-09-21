@@ -1,6 +1,13 @@
 # Logs
 *.log
 
+# Private administration (share directly with the second administrator only)
+.local-admin/
+oauth-client*.json
+credentials*.json
+token*.json
+*.pem
+
 # Dependencies
 node_modules
 

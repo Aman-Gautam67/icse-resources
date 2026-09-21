@@ -31,6 +31,12 @@ This website provides comprehensive and organized <em>**study resources**</em> s
 
 ## Usage
 
+Resource discovery uses `public/data/resource-catalog.json`: each class contains `subjects`, `pyq`, and `specimen` folders, each containing subject folders and their existing chapter/year hierarchy. New subjects and available classes are discovered from this data. `subjects` supplies notes, `pyq` supplies previous-year questions, and `specimen` supplies specimen papers. The Class 10 snapshot preserves existing links and mixed-subject prelim collections.
+
+Administration runs separately in a private, Git-ignored `.local-admin` folder on the two administrators' computers. It is not deployed with the website. The private setup guide explains Google sign-in, folder creation, batch uploads, migration and reviewed data-only Git sync. Public clones intentionally do not contain the admin app or its credentials.
+
+Run catalogue checks with `node --test tests/resource-catalog.test.mjs`. After building, `node tests/resource-library.browser.mjs` verifies the student-facing library in Chrome.
+
 - **Browse Materials**: Use the file explorer to navigate through folders
 - **Search**: Press `Ctrl+K` (or `Cmd+K` on Mac) to open the search modal
 - **Theme Toggle**: Click the sun/moon icon to switch between light and dark themes

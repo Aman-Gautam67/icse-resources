@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, ArrowUp, BookOpen, Check, ChevronDown, Clock3, FileText, FolderOpen, Search, X } from 'lucide-react';
-import { collectLibraryFiles, getLibraryCategories, type LibraryCategory, type LibraryFile, type LibrarySubject } from '../../lib/resource-library';
+import { getLibraryCategories, type LibraryCategory, type LibraryFile, type LibrarySubject } from '../../lib/resource-library';
 import type { FileNode } from '../../lib/schemas';
+import { catalogMaterials, subjectSlug } from '../../lib/resource-catalog.mjs';
 import SubjectIcon from './SubjectIcon';
 import './resource-library.css';
 
@@ -73,26 +74,29 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
   const isSearching = normalize(query).length > 0;
 
   useEffect(() => {
-    if (['9', '11', '12'].includes(new URLSearchParams(window.location.search).get('class') || '')) return;
+    setLoaded(false);
+    if (grade !== '10') setSubjects([]);
     const controller = new AbortController();
     setLoadError(false);
-    fetch('/data/study-materials.json', { signal: controller.signal }).then(response => {
+    fetch('/data/resource-catalog.json', { signal: controller.signal }).then(response => {
       if (!response.ok) throw new Error('Resource library could not be loaded');
       return response.json();
-    }).then((materials: FileNode) => {
-      if (!Array.isArray(materials.children)) throw new Error('Invalid resource library');
-      setSubjects(initialSubjects.map(subject => {
-        if (subject.slug === 'featured') {
-          const files = materials.children!.filter(child => child.type === 'file').flatMap(child => collectLibraryFiles(child));
-          return { ...subject, categories: [{ name: 'Question banks & handbooks', files, count: files.length }] };
-        }
-        const folder = materials.children!.find(child => child.type === 'folder' && child.name === subject.name);
-        return { ...subject, categories: folder ? getLibraryCategories(folder) : [] };
-      }));
+    }).then(catalog => {
+      if (catalog.version !== 1 || !catalog.classes) throw new Error('Invalid resource catalogue');
+      const materials = catalogMaterials(catalog, grade) as FileNode;
+      const nextSubjects = (materials.children || []).map(folder => {
+        const slug = folder.name === 'Featured books' ? 'featured' : subjectSlug(folder.name);
+        const previous = grade === '10' ? initialSubjects.find(subject => subject.name === folder.name) : undefined;
+        const categories = getLibraryCategories(folder);
+        return { name: folder.name, slug, description: previous?.description || `Class ${grade} notes, previous year questions and specimen papers for ${folder.name}.`, categories, count: categories.reduce((sum, category) => sum + category.count, 0) };
+      });
+      setSubjects(nextSubjects);
+      const requestedSlug = window.location.hash.slice(1);
+      setActiveSlug(nextSubjects.find(subject => subject.slug === requestedSlug)?.slug || nextSubjects.find(subject => subject.slug === 'featured')?.slug || nextSubjects[0]?.slug || '');
       setLoaded(true);
     }).catch(error => { if (error.name !== 'AbortError') setLoadError(true); });
     return () => controller.abort();
-  }, [initialSubjects, retry]);
+  }, [initialSubjects, retry, grade]);
 
   useEffect(() => {
     function syncLocation() {
@@ -100,8 +104,8 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
       const nextGrade = ['9', '10', '11', '12'].includes(requested) ? requested : '10';
       setGrade(nextGrade);
       const slug = window.location.hash.slice(1);
-      if (initialSubjects.some(subject => subject.slug === slug)) { setActiveSlug(slug); setQuery(''); }
-      else if (!slug) { setActiveSlug(defaultSlug); setQuery(''); }
+      if (subjects.some(subject => subject.slug === slug)) { setActiveSlug(slug); setQuery(''); }
+      else { setActiveSlug(subjects.find(subject => subject.slug === 'featured')?.slug || subjects[0]?.slug || ''); setQuery(''); }
       document.querySelectorAll<HTMLAnchorElement>('[data-class-link]').forEach(link => {
         if (link.dataset.classLink === nextGrade) link.setAttribute('aria-current', 'page');
         else link.removeAttribute('aria-current');
@@ -111,7 +115,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
     window.addEventListener('popstate', syncLocation);
     window.addEventListener('hashchange', syncLocation);
     return () => { window.removeEventListener('popstate', syncLocation); window.removeEventListener('hashchange', syncLocation); };
-  }, [initialSubjects, defaultSlug]);
+  }, [subjects]);
 
   useEffect(() => {
     if (window.innerWidth >= 900) return;
@@ -135,23 +139,23 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
     if (scroll) requestAnimationFrame(() => contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }));
   }
 
-  if (grade !== '10') return <section className="library-placeholder" aria-labelledby="coming-soon-title">
+  if (grade !== '10' && loaded && !subjects.length) return <section className="library-placeholder" aria-labelledby="coming-soon-title">
     <span className="library-placeholder-icon"><BookOpen size={32} aria-hidden="true" /></span><span className="library-eyebrow"><Clock3 size={14} aria-hidden="true" /> Coming soon</span>
     <h1 id="coming-soon-title">Class {grade} resources are on the way.</h1><p>This space is reserved for Class {grade} notes, study guides and practice papers. Resources are currently available for Class 10 only.</p>
     <a href="/study-materials?class=10" className="library-primary-link">Explore Class 10 resources <ArrowRight size={16} aria-hidden="true" /></a>
   </section>;
 
   return <div className="resource-library">
-    <header className="library-intro"><div><span className="library-eyebrow"><span className="library-status-dot" /> YOUR CLASS 10 STUDY SPACE</span><h1>Study Materials.<br className="sm:hidden" /> Made simple.</h1><p>Choose a subject, find what you need, and get started. All in one place, all free.</p></div><div className="library-stat"><strong>{totalCount.toLocaleString()}</strong><span>resources to explore</span></div></header>
+    <header className="library-intro"><div><span className="library-eyebrow"><span className="library-status-dot" /> YOUR CLASS {grade} STUDY SPACE</span><h1>Study Materials.<br className="sm:hidden" /> Made simple.</h1><p>Choose a subject, find what you need, and get started. All in one place, all free.</p></div><div className="library-stat"><strong>{totalCount.toLocaleString()}</strong><span>resources to explore</span></div></header>
     <div className="library-search-area">
-      <div className="library-search-box"><Search size={21} aria-hidden="true" /><label htmlFor="resource-search" className="sr-only">Search all Class 10 resources</label><input ref={searchRef} id="resource-search" type="search" placeholder="Try “physics formula” or “maths sample paper”…" value={query} onChange={event => setQuery(event.target.value)} autoComplete="off" />{query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={18} /></button>}<span className="library-search-hint">Search all subjects</span></div>
+      <div className="library-search-box"><Search size={21} aria-hidden="true" /><label htmlFor="resource-search" className="sr-only">Search all Class {grade} resources</label><input ref={searchRef} id="resource-search" type="search" placeholder="Try “physics formula” or “maths sample paper”…" value={query} onChange={event => setQuery(event.target.value)} autoComplete="off" />{query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={18} /></button>}<span className="library-search-hint">Search all subjects</span></div>
       <div className="library-search-examples"><span>Quick finds</span>{['Formula sheets', 'Sample papers', 'Selina solutions'].map((label, index) => <button key={label} type="button" onClick={() => { setQuery(['formula', 'sample paper', 'selina'][index]); setSearchScope('all'); }}>{label}<ArrowRight size={12} aria-hidden="true" /></button>)}</div>
     </div>
     {!loaded && <div className="library-load-status" role="status">{loadError ? <>The full library couldn’t load. File previews are still available. <button type="button" onClick={() => setRetry(retry + 1)}>Try again</button></> : 'Loading the full library for search and more files…'}</div>}
     <div className="library-layout">
       <aside className="library-sidebar" aria-label="Subject navigation"><div className="library-sidebar-title"><span>CHOOSE A SUBJECT</span><span>{subjects.filter(subject => subject.slug !== 'featured').length}</span></div>
         <div className="library-scroll-hint">Swipe to explore subjects <ArrowRight size={13} aria-hidden="true" /></div>
-        <nav ref={subjectNavRef} className="library-subjects" aria-label="Class 10 subjects">{navSubjects.map(subject => <a key={subject.slug} data-subject={subject.slug} href={`#${subject.slug}`} aria-current={!isSearching && subject.slug === activeSlug ? 'true' : undefined} onClick={event => { if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return; event.preventDefault(); chooseSubject(subject.slug, window.innerWidth < 900); }}><SubjectIcon subject={subject.slug} /><span>{subject.name}</span><span className="library-subject-count">{subject.count.toLocaleString()}</span>{!isSearching && subject.slug === activeSlug && <Check size={14} aria-hidden="true" />}</a>)}</nav>
+        <nav ref={subjectNavRef} className="library-subjects" aria-label={`Class ${grade} subjects`}>{navSubjects.map(subject => <a key={subject.slug} data-subject={subject.slug} href={`#${subject.slug}`} aria-current={!isSearching && subject.slug === activeSlug ? 'true' : undefined} onClick={event => { if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return; event.preventDefault(); chooseSubject(subject.slug, window.innerWidth < 900); }}><SubjectIcon subject={subject.slug} /><span>{subject.name}</span><span className="library-subject-count">{subject.count.toLocaleString()}</span>{!isSearching && subject.slug === activeSlug && <Check size={14} aria-hidden="true" />}</a>)}</nav>
         <div className="library-sidebar-help"><BookOpen size={18} aria-hidden="true" /><strong>New here?</strong><p>Start with your subject’s notes, then try a practice paper.</p><a href="/cisce">Find the official syllabus <ArrowRight size={13} aria-hidden="true" /></a></div>
       </aside>
       <div className="library-content" ref={contentRef}>
@@ -160,7 +164,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
           <div className="library-search-filter"><label htmlFor="search-subject">Subject</label><select id="search-subject" value={searchScope} onChange={event => setSearchScope(event.target.value)}><option value="all">All subjects</option>{subjects.map(subject => <option key={subject.slug} value={subject.slug}>{subject.name}</option>)}</select></div>
           {results.length ? <FileList key={`${query}-${searchScope}`} id="search-result-files" files={results.map(result => ({ ...result.file, path: `${result.subject} / ${result.file.path || result.category}` }))} preview={12} /> : <div className="library-empty"><Search size={28} aria-hidden="true" /><h3>{loaded ? 'No matching resources yet' : 'The full library is still loading'}</h3><p>{loaded ? 'Try a shorter phrase like “electricity”, check the spelling, or search another subject.' : 'Your search will update when the library is ready.'}</p><button type="button" className="library-more-button" onClick={() => { setSearchScope('all'); setQuery(''); searchRef.current?.focus(); }}>Clear search and start again</button></div>}
         </section> : activeSubject && <section key={activeSubject.slug} id={activeSubject.slug} aria-labelledby="subject-title">
-          <div className="library-content-heading"><div><span className="library-eyebrow">CLASS 10 / STUDY MATERIALS</span><h2 id="subject-title"><SubjectIcon subject={activeSubject.slug} />{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
+          <div className="library-content-heading"><div><span className="library-eyebrow">CLASS {grade} / STUDY MATERIALS</span><h2 id="subject-title"><SubjectIcon subject={activeSubject.slug} />{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
           <div className="library-category-help"><span><FolderOpen size={15} aria-hidden="true" /> {activeSubject.categories.length} {activeSubject.categories.length === 1 ? 'category' : 'categories'}</span><span>Open a category to explore its files</span></div>
           <div className="library-categories">{activeSubject.categories.map((category, index) => <Category key={`${activeSubject.slug}-${index}`} category={category} index={index} subject={activeSubject.slug} loaded={loaded} />)}</div>
           {!activeSubject.count && <div className="library-empty"><h3>Resources are being added</h3><p>Choose another subject to keep exploring.</p></div>}

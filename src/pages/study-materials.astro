@@ -11,7 +11,7 @@ const subjects: LibrarySubject[] = getSubjectSummary(materials).map(subject => {
   const categories = folder ? getLibraryCategories(folder) : [];
   return {
     name: subject.name,
-    slug: subject.path.split('#')[1],
+    slug: subject.name === 'Featured books' ? 'featured' : subject.path.split('#')[1],
     description: subject.description,
     categories,
     count: categories.reduce((sum, category) => sum + category.count, 0),

@@ -3,6 +3,9 @@ import { preview } from 'vite';
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { catalogMaterials, flattenCatalog } from '../src/lib/resource-catalog.mjs';
+import { readFileSync } from 'node:fs';
+const expectedMaterials = catalogMaterials(JSON.parse(readFileSync('public/data/resource-catalog.json', 'utf8')), '10');
 
 // Run after building: node tests/resource-library.browser.mjs
 const server = await preview({ configFile: false, plugins: [{ name: 'static-astro-routes', configurePreviewServer(server) {
@@ -36,7 +39,7 @@ try {
   await page.locator('[data-class-link="10"]').click();
   await ready();
   await expect(page.locator('#subject-title')).toContainText('Featured books');
-  await expect(page.locator('.library-subjects .subject-icon')).toHaveCount(12);
+  await expect(page.locator('.library-subjects .subject-icon')).toHaveCount(expectedMaterials.children.length);
   await page.getByRole('navigation', { name: 'Class 10 subjects' }).getByRole('link', { name: /Physics/ }).click();
   await expect(page.locator('#subject-title')).toContainText('Physics');
   const guides = page.locator('.library-category').first();
@@ -132,19 +135,31 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await page.locator('.library-content > section').evaluate(element => getComputedStyle(element).animationName)).toBe('none');
   // A failed data request keeps real previews usable and can be retried.
-  await page.route('**/data/study-materials.json', route => route.abort());
+  await page.route('**/data/resource-catalog.json', route => route.abort());
   await page.goto(`${base}/study-materials`);
   await expect(page.getByRole('status')).toContainText('full library couldn’t load');
   await expect(page.locator('.library-category').first().locator('.library-files a')).toHaveCount(3);
-  await page.unroute('**/data/study-materials.json');
+  await page.unroute('**/data/resource-catalog.json');
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
   await ready();
   const plainContext = await browser.newContext({ javaScriptEnabled: false });
   const plainPage = await plainContext.newPage();
   await plainPage.goto(`${base}/study-materials`);
   await plainPage.getByRole('link', { name: 'Browse all Class 10 resources' }).click();
-  await expect(plainPage.locator('.file-list a')).toHaveCount(6294);
+  await expect(plainPage.locator('.file-list a')).toHaveCount(flattenCatalog(expectedMaterials).length);
   await plainContext.close();
+  // A newly discovered subject in another class needs no frontend code change.
+  await page.route('**/data/resource-catalog.json', route => route.fulfill({ json: { version: 1, classes: { '11': {
+    subjects: { name: 'subjects', type: 'folder', children: [] },
+    pyq: { name: 'pyq', type: 'folder', children: [{ name: 'Economics', type: 'folder', children: [{ name: 'Economics 2026.pdf', type: 'file', id: 'economics-paper' }] }] },
+    specimen: { name: 'specimen', type: 'folder', children: [] },
+  } } } }));
+  await page.goto(`${base}/study-materials?class=11#economics`);
+  await expect(page.locator('#subject-title')).toContainText('Economics');
+  await expect(page.getByRole('heading', { name: 'PYQ', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Class 11 subjects' }).getByRole('link')).toHaveCount(1);
+  await expect(page.getByRole('searchbox', { name: 'Search all Class 11 resources' })).toBeVisible();
+  await expect(page.locator('.library-file-name')).toContainText('Economics 2026');
   expect(errors).toEqual([]);
   console.log('PASS: class placeholders, subject history/deep links, complete category expansion, search/filter/reset, responsive overflow, mobile menu, global search, reduced motion, and no browser errors.');
 } finally {

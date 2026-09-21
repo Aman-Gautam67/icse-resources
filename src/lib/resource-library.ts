@@ -23,6 +23,11 @@ export function getLibraryCategories(node: FileNode): LibraryCategory[] {
   const samplePapers: LibraryFile[] = [];
   const sampleSolutions: LibraryFile[] = [];
   for (const child of children.filter(child => child.type === 'folder')) {
+    if (child.name === 'PYQ' || child.name === 'Specimen') {
+      const files = collectLibraryFiles(child);
+      if (files.length) categories.push({ name: child.name, files, count: files.length });
+      continue;
+    }
     const remaining: LibraryFile[] = [];
     for (const file of collectLibraryFiles(child)) {
       const folders = file.path.split('/').map(folder => folder.trim());

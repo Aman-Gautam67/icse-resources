@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ThemeToggle from '../components/islands/ThemeToggle';
+import { getAvailableClassesSync } from '../lib/data';
 const classes = [12, 11, 10, 9];
+const available = getAvailableClassesSync();
 ---
 
-<BaseLayout title="ICSE Resources — Choose your class" description="Choose your class to find study notes, textbook solutions and practice papers. Class 10 resources are available; Classes 9, 11 and 12 are coming soon." currentPath="/" selectionOnly>
+<BaseLayout title="ICSE Resources — Choose your class" description="Choose your class to find study notes, textbook solutions and practice papers. Browse available resources for your class." currentPath="/" selectionOnly>
   <div class="class-entry">
     <header class="entry-header">
       <a class="entry-brand" href="/" aria-label="ICSE Resources home">
@@ -20,13 +22,13 @@ const classes = [12, 11, 10, 9];
         <p class="entry-description">Choose your class to find the notes,<br class="desktop-break" /> guides, and practice papers you need.</p>
       </div>
       <nav class="entry-classes" aria-label="Choose your class">
-        {classes.map(grade => <a href={`/study-materials?class=${grade}`} data-class-link={grade} class:list={['entry-class', { 'entry-class-ready': grade === 10 }]}>
-          <div class="entry-class-top"><span>CLASS</span><span class="entry-availability">{grade === 10 ? 'Available now' : 'Coming soon'}</span></div>
+        {classes.map(grade => <a href={`/study-materials?class=${grade}`} data-class-link={grade} class:list={['entry-class', { 'entry-class-ready': available.includes(String(grade)) }]}>
+          <div class="entry-class-top"><span>CLASS</span><span class="entry-availability">{available.includes(String(grade)) ? 'Available now' : 'Coming soon'}</span></div>
           <span class="entry-number">{grade}</span>
-          <div class="entry-class-bottom"><span>{grade === 10 ? 'Explore resources' : 'Take a look ahead'}</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+          <div class="entry-class-bottom"><span>{available.includes(String(grade)) ? 'Explore resources' : 'Take a look ahead'}</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg></div>
         </a>)}
       </nav>
-      <div class="entry-note"><span class="entry-note-line"></span><p>Class 10 is ready to explore. More classes are on the way.</p></div>
+      <div class="entry-note"><span class="entry-note-line"></span><p>Explore an available class. More resources are added as the library grows.</p></div>
     </section>
 
     <footer class="entry-footer"><span>Free to learn. Open to everyone.</span><span>CHOOSE A CLASS <span aria-hidden="true">→</span> FIND YOUR SUBJECT <span aria-hidden="true">→</span> START LEARNING</span></footer>
