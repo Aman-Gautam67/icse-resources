@@ -1,9 +1,14 @@
 import { z } from "zod";
+import { normalizeArchiveUrl } from './archive-url.mjs';
+const ArchiveUrlSchema = z.string().refine(value => {
+  try { return !!normalizeArchiveUrl(value); } catch { return false; }
+}, 'Invalid Internet Archive URL').optional();
 
 export interface FileNode {
   name: string;
   type: "folder" | "file";
   id?: string;
+  archiveUrl?: string;
   mimeType?: string;
   path?: string;
   children?: FileNode[];
@@ -15,6 +20,7 @@ export const FileNodeSchema: z.ZodType<FileNode> = z.lazy(() =>
     name: z.string(),
     type: z.enum(["folder", "file"]),
     id: z.string().optional(),
+    archiveUrl: ArchiveUrlSchema,
     mimeType: z.string().optional(),
     path: z.string().optional(),
     children: z.array(FileNodeSchema).optional(),
@@ -25,6 +31,7 @@ export const SearchItemSchema = z.object({
   name: z.string(),
   id: z.string(),
   path: z.string(),
+  archiveUrl: ArchiveUrlSchema,
 });
 
 export const SearchIndexSchema = z.array(SearchItemSchema);

@@ -1,6 +1,7 @@
 import type { FileNode } from './schemas';
+import { safeArchiveUrl } from './archive-url.mjs';
 
-export interface LibraryFile { name: string; id: string; path: string }
+export interface LibraryFile { name: string; id: string; path: string; archiveUrl?: string }
 export interface LibraryCategory { name: string; files: LibraryFile[]; count: number }
 export interface LibrarySubject {
   name: string;
@@ -12,7 +13,7 @@ export interface LibrarySubject {
 
 // Retain folder context to distinguish similarly named school/year papers.
 export function collectLibraryFiles(node: FileNode, parents: string[] = []): LibraryFile[] {
-  if (node.type === 'file') return node.id ? [{ name: node.name, id: node.id, path: parents.join(' / ') }] : [];
+  if (node.type === 'file') return node.id ? [{ name: node.name, id: node.id, path: parents.join(' / '), archiveUrl: safeArchiveUrl(node.archiveUrl) }] : [];
   return (node.children || []).flatMap(child => collectLibraryFiles(child, [...parents, node.name]));
 }
 

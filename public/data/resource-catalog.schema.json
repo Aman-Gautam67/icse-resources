@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public resource catalogue",
+  "type": "object",
+  "required": ["version", "classes"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "classes": {
+      "type": "object",
+      "propertyNames": { "enum": ["9", "10", "11", "12"] },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["subjects", "pyq", "specimen"],
+        "additionalProperties": false,
+        "properties": {
+          "subjects": { "$ref": "#/$defs/folder" },
+          "pyq": { "$ref": "#/$defs/folder" },
+          "specimen": { "$ref": "#/$defs/folder" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "folder": {
+      "type": "object",
+      "required": ["name", "type", "children"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "const": "folder" },
+        "children": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/folder" }, { "$ref": "#/$defs/file" }] } }
+      }
+    },
+    "file": {
+      "type": "object",
+      "required": ["name", "type", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "const": "file" },
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+        "path": { "type": "string" },
+        "archiveUrl": {
+          "description": "Optional existing Internet Archive mirror. Omit when unavailable; never fabricate a URL.",
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^https://(www\\.)?archive\\.org/(details|download|stream)/[^/?#]+"
+        }
+      }
+    }
+  }
+}

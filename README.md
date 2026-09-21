@@ -31,6 +31,10 @@ This website provides comprehensive and organized <em>**study resources**</em> s
 
 ## Usage
 
+Resources may include an optional `archiveUrl` pointing to an existing HTTPS Internet Archive item or download. The catalogue schema is published at `public/data/resource-catalog.schema.json`. The uploader accepts one mirror URL per queued file; Drive rescans preserve this metadata by file ID.
+
+Students see **Server 1** and, when a mirror is configured, **Server 2**. Each option tries its preferred source and automatically falls back to the other. If neither responds, the site shows a retry page instead of a broken mirror button. The `/resource` endpoint runs on the existing Cloudflare adapter, checks only catalogue-approved destinations, and uses no administrator credentials. A static-only file server cannot run this endpoint. Public availability checks detect HTTP/network failures and common provider error pages, but cannot guarantee availability for every student's network or session. Saved URLs do not create an Internet Archive upload.
+
 Resource discovery uses `public/data/resource-catalog.json`: each class contains `subjects`, `pyq`, and `specimen` folders, each containing subject folders and their existing chapter/year hierarchy. New subjects and available classes are discovered from this data. `subjects` supplies notes, `pyq` supplies previous-year questions, and `specimen` supplies specimen papers. The Class 10 snapshot preserves existing links and mixed-subject prelim collections.
 
 Administration runs separately in a private, Git-ignored `.local-admin` folder on the two administrators' computers. It is not deployed with the website. The private setup guide explains Google sign-in, folder creation, batch uploads, migration and reviewed data-only Git sync. Public clones intentionally do not contain the admin app or its credentials.

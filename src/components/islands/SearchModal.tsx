@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from "react";
 import { Search, FileText, Eye, Download, X, Loader2 } from "lucide-react";
+import { safeArchiveUrl } from '../../lib/archive-url.mjs';
+import { resourceUrl } from '../../lib/resource-link.mjs';
 import Fuse, { type FuseResult, type FuseResultMatch } from "fuse.js";
 
 const useDialogEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -8,6 +10,7 @@ export interface SearchItem {
   name: string;
   id: string;
   path: string;
+  archiveUrl?: string;
 }
 
 export interface SearchModalProps {
@@ -153,6 +156,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     };
   }, [open, previewFile]);
 
+  const showResource = useCallback((file: SearchItem) => {
+    if (safeArchiveUrl(file.archiveUrl)) window.open(resourceUrl(file), '_blank', 'noopener,noreferrer');
+    else setPreviewFile(file);
+  }, []);
+
   // Result navigation only belongs to the search input; result buttons retain Enter.
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -164,10 +172,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         setSelectedIndex((i) => Math.max(i - 1, 0));
       } else if (e.key === "Enter" && results[selectedIndex]) {
         e.preventDefault();
-        setPreviewFile(results[selectedIndex].item);
+        showResource(results[selectedIndex].item);
       }
     },
-    [results, selectedIndex]
+    [results, selectedIndex, showResource]
   );
 
   // Auto-scroll selected item into view
@@ -180,8 +188,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
 
   if (!open) return null;
 
-  const previewUrl = (id: string) => `https://drive.google.com/file/d/${id}/preview`;
-  const downloadUrl = (id: string) => `https://drive.google.com/uc?export=download&id=${id}`;
+  const previewUrl = (file: SearchItem) => resourceUrl(file, 'preview');
+  const downloadUrl = (file: SearchItem) => resourceUrl(file, 'download');
 
   return (
     <>
@@ -267,7 +275,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   className={`group flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors duration-100 ${
                     i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"
                   }`}
-                  onClick={() => setPreviewFile(result.item)}
+                  onClick={() => showResource(result.item)}
                   onMouseEnter={() => setSelectedIndex(i)}
                 >
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -287,30 +295,31 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                     </p>
                   </div>
 
-                  <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex flex-wrap gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setPreviewFile(result.item);
+                        showResource(result.item);
                       }}
                       className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
-                      title="Preview"
-                      aria-label={`Preview ${result.item.name}`}
+                      title={result.item.archiveUrl ? 'Open' : 'Preview'}
+                      aria-label={`${result.item.archiveUrl ? 'Open' : 'Preview'} ${result.item.name}`}
                     >
                       <Eye className="h-3.5 w-3.5 text-primary" />
                     </button>
                     <a
-                      href={downloadUrl(result.item.id)}
+                      href={downloadUrl(result.item)}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
-                      title="Download"
-                      aria-label={`Download ${result.item.name}`}
+                      title="Server 1"
+                      aria-label={`Server 1 — download ${result.item.name}`}
                     >
-                      <Download className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs">Server 1</span>
                     </a>
+                    {safeArchiveUrl(result.item.archiveUrl) && <a href={resourceUrl(result.item, 'download', '2')} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} className="p-1.5 rounded-lg hover:bg-primary/10 text-xs" aria-label={`Server 2 — download ${result.item.name}`}>Server 2</a>}
                   </div>
                 </div>
               ))}
@@ -343,14 +352,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
               {previewFile.path}
             </span>
             <a
-              href={downloadUrl(previewFile.id)}
+              href={downloadUrl(previewFile)}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg hover:bg-accent transition-colors"
-              title="Download file"
-              aria-label="Download file"
+              title="Server 1"
+              aria-label="Server 1 — download file"
             >
-              <Download className="h-4 w-4 text-primary" />
+              <span className="text-xs text-primary">Server 1</span>
             </a>
             <button
               ref={closePreviewRef}
@@ -364,7 +373,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             </button>
           </div>
           <iframe
-            src={previewUrl(previewFile.id)}
+            src={previewUrl(previewFile)}
             className="flex-1 w-full border-0"
             title={previewFile.name}
             loading="lazy"

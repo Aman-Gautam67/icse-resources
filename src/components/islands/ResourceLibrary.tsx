@@ -4,6 +4,7 @@ import { getLibraryCategories, type LibraryCategory, type LibraryFile, type Libr
 import type { FileNode } from '../../lib/schemas';
 import { catalogMaterials, subjectSlug } from '../../lib/resource-catalog.mjs';
 import SubjectIcon from './SubjectIcon';
+import { resourceUrl } from '../../lib/resource-link.mjs';
 import './resource-library.css';
 
 const PREVIEW_COUNT = 3;
@@ -13,11 +14,11 @@ const normalize = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+
 function FileCard({ file }: { file: LibraryFile }) {
   const extension = file.name.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toUpperCase();
   const name = file.name.replace(/\.(pdf|jpe?g|png|docx?|pptx?|xlsx?)$/i, '');
-  return <li><a className="library-file" href={`https://drive.google.com/file/d/${encodeURIComponent(file.id)}/view`} target="_blank" rel="noopener noreferrer">
+  return <li><a className="library-file" href={resourceUrl(file, 'download')} target="_blank" rel="noopener noreferrer">
     <span className="library-file-icon"><FileText size={18} aria-hidden="true" /></span>
     <span className="library-file-copy"><span className="library-file-name">{name}</span><span className="library-file-meta">{file.path || 'Study resource'} <span aria-hidden="true">·</span> {extension || 'File'}</span></span>
-    <span className="library-open">Open <ArrowRight size={14} aria-hidden="true" /></span><span className="sr-only"> (opens in a new tab)</span>
-  </a></li>;
+    <span className="library-open">Server 1 <ArrowRight size={14} aria-hidden="true" /></span><span className="sr-only"> (download, opens in a new tab)</span>
+  </a>{file.archiveUrl && <a className="library-server" href={resourceUrl(file, 'download', '2')} target="_blank" rel="noopener noreferrer">Server 2 <ArrowRight size={14} aria-hidden="true" /><span className="sr-only"> — download {name} (opens in a new tab)</span></a>}</li>;
 }
 
 function FileList({ files, id, count = files.length, loaded = true, preview = PREVIEW_COUNT }: { files: LibraryFile[]; id: string; count?: number; loaded?: boolean; preview?: number }) {
@@ -29,7 +30,7 @@ function FileList({ files, id, count = files.length, loaded = true, preview = PR
   function showMore() {
     const previousLimit = limit;
     setLimit(limit + PAGE_SIZE);
-    requestAnimationFrame(() => listRef.current?.querySelectorAll('a')[previousLimit]?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => listRef.current?.querySelectorAll<HTMLAnchorElement>('a.library-file')[previousLimit]?.focus({ preventScroll: true }));
   }
   function showLess() {
     setLimit(preview);

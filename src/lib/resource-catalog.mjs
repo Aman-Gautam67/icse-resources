@@ -1,4 +1,5 @@
 // Public, credential-free projection of the Drive class/section/subject hierarchy.
+import { safeArchiveUrl } from './archive-url.mjs';
 export const SECTIONS = { subjects: 'Notes', pyq: 'PYQ', specimen: 'Specimen' };
 export function subjectSlug(name) {
   return name.normalize('NFKC').toLowerCase().replace(/&/g, '').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'subject';
@@ -19,6 +20,9 @@ export function catalogMaterials(catalog, grade = '10') {
   return { name: `Class ${grade} Study Materials`, type: 'folder', children: [...subjects.values()] };
 }
 export function flattenCatalog(node, parents = []) {
-  if (node.type === 'file') return [{ name: node.name, id: node.id, path: parents.join(' / ') }];
+  if (node.type === 'file') {
+    const archiveUrl = safeArchiveUrl(node.archiveUrl);
+    return [{ name: node.name, id: node.id, path: parents.join(' / '), ...(archiveUrl ? { archiveUrl } : {}) }];
+  }
   return (node.children || []).flatMap(child => flattenCatalog(child, [...parents, node.name]));
 }

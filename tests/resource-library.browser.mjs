@@ -151,7 +151,7 @@ try {
   // A newly discovered subject in another class needs no frontend code change.
   await page.route('**/data/resource-catalog.json', route => route.fulfill({ json: { version: 1, classes: { '11': {
     subjects: { name: 'subjects', type: 'folder', children: [] },
-    pyq: { name: 'pyq', type: 'folder', children: [{ name: 'Economics', type: 'folder', children: [{ name: 'Economics 2026.pdf', type: 'file', id: 'economics-paper' }] }] },
+    pyq: { name: 'pyq', type: 'folder', children: [{ name: 'Economics', type: 'folder', children: [{ name: 'Economics 2026.pdf', type: 'file', id: 'economics-paper', archiveUrl: 'https://archive.org/details/example-economics' }] }] },
     specimen: { name: 'specimen', type: 'folder', children: [] },
   } } } }));
   await page.goto(`${base}/study-materials?class=11#economics`);
@@ -160,6 +160,9 @@ try {
   await expect(page.getByRole('navigation', { name: 'Class 11 subjects' }).getByRole('link')).toHaveCount(1);
   await expect(page.getByRole('searchbox', { name: 'Search all Class 11 resources' })).toBeVisible();
   await expect(page.locator('.library-file-name')).toContainText('Economics 2026');
+  await expect(page.locator('.library-file')).toHaveAttribute('href', '/resource?id=economics-paper&mode=download');
+  await expect(page.getByRole('link', { name: /Server 2/ })).toHaveAttribute('href', '/resource?id=economics-paper&mode=download&server=2');
+  await expect(page.getByRole('link', { name: /Mirror Link|Archive|Google Drive/ })).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log('PASS: class placeholders, subject history/deep links, complete category expansion, search/filter/reset, responsive overflow, mobile menu, global search, reduced motion, and no browser errors.');
 } finally {

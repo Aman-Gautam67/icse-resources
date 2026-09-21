@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { resourceUrl } from '../../lib/resource-link.mjs';
 import { getStudyMaterialsSync, getSubjectSummary } from '../../lib/data';
 import { collectLibraryFiles, getLibraryCategories, type LibrarySubject } from '../../lib/resource-library';
 
@@ -39,7 +40,7 @@ const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
       <p class="eyebrow">Complete resource catalogue</p>
       <h1>All Class 10 study materials</h1>
       <p>{totalCount.toLocaleString()} resources, organised by subject and category. All resources on this page are for Class 10.</p>
-      <p>Open a subject, then a category to find your file. This catalogue works without JavaScript. Files open in Google Drive in a new tab.</p>
+      <p>Open a subject, then a category to find your file. This catalogue works without JavaScript. Choose a download server to open a resource in a new tab.</p>
     </header>
 
     <nav aria-label="Jump to a subject" class="subject-links">
@@ -64,7 +65,8 @@ const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
                 <ul class="file-list">
                   {category.files.map(file => (
                     <li>
-                      <a href={`https://drive.google.com/file/d/${encodeURIComponent(file.id)}/view`} target="_blank" rel="noopener noreferrer">{file.name} <span aria-hidden="true">&nearr;</span></a>
+                      <a href={resourceUrl(file, 'download')} target="_blank" rel="noopener noreferrer">{file.name} — Server 1 <span aria-hidden="true">&nearr;</span></a>
+                      {file.archiveUrl && <a href={resourceUrl(file, 'download', '2')} target="_blank" rel="noopener noreferrer">Server 2<span class="sr-only"> — download {file.name} (opens in a new tab)</span></a>}
                       <small>{[subject.slug === 'featured' ? materials.name : subject.name, file.path].filter(Boolean).join(' / ')}</small>
                     </li>
                   ))}

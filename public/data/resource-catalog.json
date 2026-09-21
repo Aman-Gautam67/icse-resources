@@ -1,4 +1,5 @@
 {
+  "$schema": "./resource-catalog.schema.json",
   "version": 1,
   "classes": {
     "10": {
