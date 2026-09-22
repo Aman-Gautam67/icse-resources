@@ -8,6 +8,7 @@ export interface InfoModalProps {
 
 const GITHUB_REPO = "Jivaansh-Yadav/icse-resources";
 const DEVELOPER_NAME = "Jivaansh Yadav";
+const DEVELOPER_EMAIL = "jivaanshyadav@gmail.com";
 const CO_DEVELOPER_NAME = "Aman Gautam";
 const CO_DEVELOPER_EMAIL = "a10687959@gmail.com";
 
@@ -127,7 +128,11 @@ export const InfoModal: React.FC<InfoModalProps> = ({ open, onClose }) => {
           <div className="space-y-3 mb-5 text-sm text-muted-foreground leading-relaxed">
             <p>
               Developed with dedication by{" "}
-              <span className="font-semibold text-foreground">{DEVELOPER_NAME}</span> & Co-developer -{" "}
+              <span className="font-semibold text-foreground">{DEVELOPER_NAME}</span> (
+              <a href={`mailto:${DEVELOPER_EMAIL}`} className="text-primary hover:underline">
+                {DEVELOPER_EMAIL}
+              </a>
+              ) & Co-developer -{" "}
               <span className="font-semibold text-foreground">{CO_DEVELOPER_NAME}</span> (
               <a href={`mailto:${CO_DEVELOPER_EMAIL}`} className="text-primary hover:underline">
                 {CO_DEVELOPER_EMAIL}
