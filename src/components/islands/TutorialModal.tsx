@@ -38,7 +38,7 @@ const SLIDES: TutorialSlide[] = [
     highlights: [
       {
         icon: <BookOpen className="h-4 w-4 text-primary shrink-0" />,
-        title: "6,500+ Curated Files",
+        title: "6,100+ Resources",
         text: "Complete revision notes, specimen question papers, textbook solutions, and school prelims."
       },
       {

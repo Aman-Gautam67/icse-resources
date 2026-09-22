@@ -150,7 +150,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({ open, onClose }) => {
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-background">
               <BookOpen className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs font-medium text-foreground">6,500+ Curated Files</span>
+              <span className="text-xs font-medium text-foreground">6,100+ Resources</span>
             </div>
             <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-background">
               <ShieldCheck className="h-4 w-4 text-primary shrink-0" />

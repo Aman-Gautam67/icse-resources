@@ -270,7 +270,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
               )}
               {results.length === 0 && !query.trim() && (
                 <div className="text-center text-muted-foreground text-sm py-10">
-                  <p>Start typing to search across 6,500+ study files…</p>
+                  <p>Start typing to search across 6,100+ study files…</p>
                   <p className="text-xs mt-1">Use ↑↓ arrows to navigate and Enter to preview</p>
                 </div>
               )}
