@@ -3,6 +3,7 @@ import { Search, FileText, Eye, Download, X, Loader2 } from "lucide-react";
 import { safeArchiveUrl } from '../../lib/archive-url.mjs';
 import { resourceUrl } from '../../lib/resource-link.mjs';
 import Fuse, { type FuseResult, type FuseResultMatch } from "fuse.js";
+import DownloadModal from "./DownloadModal";
 
 const useDialogEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -28,6 +29,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
   const [results, setResults] = useState<FuseResult<SearchItem>[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [previewFile, setPreviewFile] = useState<SearchItem | null>(null);
+  const [downloadTarget, setDownloadTarget] = useState<SearchItem | null>(null);
   const [allItems, setAllItems] = useState<SearchItem[]>([]);
   const [isLoadingIndex, setIsLoadingIndex] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -316,26 +318,18 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                       href={downloadUrl(result.item)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-2 py-1 rounded-md bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium"
-                      title="Server 1"
-                      aria-label={`Server 1 — download ${result.item.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setDownloadTarget(result.item);
+                      }}
+                      className="px-2.5 py-1 rounded-md bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium inline-flex items-center gap-1"
+                      title="Download"
+                      aria-label={`Download ${result.item.name}`}
                     >
-                      Server 1
+                      <Download size={12} aria-hidden="true" />
+                      <span>Download</span>
                     </a>
-                    {safeArchiveUrl(result.item.archiveUrl) && (
-                      <a
-                        href={resourceUrl(result.item, 'download', '2')}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        className="px-2 py-1 rounded-md bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/25 transition-colors text-xs font-medium text-primary"
-                        title="Server 2"
-                        aria-label={`Server 2 — download ${result.item.name}`}
-                      >
-                        Server 2
-                      </a>
-                    )}
                   </div>
                 </div>
               ))}
@@ -368,28 +362,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
               {previewFile.path}
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
-              <a
-                href={downloadUrl(previewFile)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium text-foreground"
-                title="Server 1"
-                aria-label="Server 1 — download file"
+              <button
+                type="button"
+                onClick={() => setDownloadTarget(previewFile)}
+                className="px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium text-foreground inline-flex items-center gap-1"
+                title="Download"
+                aria-label={`Download ${previewFile.name}`}
               >
-                Server 1
-              </a>
-              {safeArchiveUrl(previewFile.archiveUrl) && (
-                <a
-                  href={resourceUrl(previewFile, 'download', '2')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/25 transition-colors text-xs font-medium text-primary"
-                  title="Server 2"
-                  aria-label="Server 2 — download file"
-                >
-                  Server 2
-                </a>
-              )}
+                <Download size={12} aria-hidden="true" />
+                <span>Download</span>
+              </button>
             </div>
             <button
               ref={closePreviewRef}
@@ -410,6 +392,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             allow="autoplay"
           />
         </div>
+      )}
+
+      {downloadTarget && (
+        <DownloadModal
+          file={downloadTarget as any}
+          onClose={() => setDownloadTarget(null)}
+        />
       )}
     </>
   );

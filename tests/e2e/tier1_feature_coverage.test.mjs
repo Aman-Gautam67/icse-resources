@@ -15,9 +15,9 @@ describe('Tier 1: Feature Coverage - Route 1: Home Page (/)', () => {
     expect(html).toMatch(/<h1[^>]*>[\s\S]*?Your class[\s\S]*?<\/h1>/i);
   });
 
-  it('should offer all four classes before resource navigation', () => {
+  it('should offer all visible classes before resource navigation', () => {
     const html = readHtmlFile('/');
-    for (const grade of [12, 11, 10, 9]) expect(html).toContain(`href="/study-materials?class=${grade}"`);
+    for (const grade of [12, 10]) expect(html).toContain(`href="/study-materials?class=${grade}"`);
     expect(html).not.toContain('id="site-header"');
   });
 

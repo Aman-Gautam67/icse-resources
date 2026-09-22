@@ -41,7 +41,7 @@ const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
       <p class="eyebrow">Complete resource catalogue</p>
       <h1>All Class 10 study materials</h1>
       <p>{totalCount.toLocaleString()} resources, organised by subject and category. All resources on this page are for Class 10.</p>
-      <p>Open a subject, then a category to find your file. This catalogue works without JavaScript. Choose a download server to open a resource in a new tab.</p>
+      <p>Open a subject, then a category to find your file. This catalogue works without JavaScript. Click Download to open a resource in a new tab.</p>
     </header>
 
     <nav aria-label="Jump to a subject" class="subject-links">
@@ -69,8 +69,7 @@ const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
                       <div class="file-item-row">
                         <span class="file-title">{file.name}</span>
                         <div class="file-actions">
-                          <a href={resourceUrl(file, 'download')} target="_blank" rel="noopener noreferrer" class="btn-server">Server 1 <span aria-hidden="true">&nearr;</span></a>
-                          {file.archiveUrl && <a href={resourceUrl(file, 'download', '2')} target="_blank" rel="noopener noreferrer" class="btn-server btn-server-2">Server 2<span class="sr-only"> — download {file.name} (opens in a new tab)</span></a>}
+                          <a href={resourceUrl(file, 'download')} target="_blank" rel="noopener noreferrer" class="btn-server">Download <span aria-hidden="true">&nearr;</span></a>
                         </div>
                       </div>
                       <small>{[subject.slug === 'featured' ? materials.name : subject.name, file.path].filter(Boolean).join(' / ')}</small>

@@ -164,8 +164,11 @@ try {
   await expect(page.getByRole('searchbox', { name: 'Search all Class 12 resources' })).toBeVisible();
   await expect(page.locator('.library-file-name')).toContainText('Economics 2026');
   await expect(page.locator('.library-file')).toHaveAttribute('href', '/resource?id=economics-paper&mode=download');
-  await expect(page.getByRole('link', { name: /Server 2/ })).toHaveAttribute('href', '/resource?id=economics-paper&mode=download&server=2');
-  await expect(page.getByRole('link', { name: /Mirror Link|Archive|Google Drive/ })).toHaveCount(0);
+  await page.locator('.library-file').click();
+  await expect(page.getByRole('dialog', { name: /Download Resource/i })).toBeVisible();
+  await expect(page.getByText('Trying Server 1...')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Switch to Server 2|Try Server 2/i })).toBeVisible();
+  await expect(page.getByText(/Google Drive|drive\.google\.com|Internet Archive|archive\.org/i)).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log('PASS: class placeholders, subject history/deep links, complete category expansion, search/filter/reset, responsive overflow, mobile menu, global search, reduced motion, and no browser errors.');
 } finally {
