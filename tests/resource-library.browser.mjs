@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { catalogMaterials, flattenCatalog } from '../src/lib/resource-catalog.mjs';
+import { visibleClasses } from '../src/lib/class-options.mjs';
 import { readFileSync } from 'node:fs';
 const expectedMaterials = catalogMaterials(JSON.parse(readFileSync('public/data/resource-catalog.json', 'utf8')), '10');
 
@@ -28,7 +29,7 @@ async function ready() { await expect(page.locator('.library-load-status')).toHa
 async function noOverflow() { expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); }
 try {
   await page.goto(`${base}/`);
-  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(4);
+  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(visibleClasses.length);
   await expect(page.getByRole('link', { name: /ICSE.*CLASS.*10/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /ISC.*CLASS.*12/ })).toBeVisible();
   await expect(page.locator('#site-header, #app-modals-root, #resource-search')).toHaveCount(0);
@@ -82,7 +83,7 @@ try {
   await page.getByLabel('Subject', { exact: true }).selectOption('physics');
   await expect(page.locator('.library-results [role="status"]')).toContainText('54 results');
   await page.getByRole('button', { name: 'Back to subjects' }).click();
-  for (const grade of [12, 11, 9]) {
+  for (const grade of visibleClasses.filter(grade => grade !== 10)) {
     await page.locator(`[data-class-link="${grade}"]`).click();
     await expect(page.getByRole('heading', { name: `Class ${grade} resources are on the way.` })).toBeVisible();
     await expect(page.locator(`[data-class-link="${grade}"]`)).toHaveAttribute('aria-current', 'page');
