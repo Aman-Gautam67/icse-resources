@@ -5,6 +5,7 @@ import type { FileNode } from '../../lib/schemas';
 import { catalogMaterials, subjectSlug } from '../../lib/resource-catalog.mjs';
 import SubjectIcon from './SubjectIcon';
 import { resourceUrl } from '../../lib/resource-link.mjs';
+import { visibleClasses, boardForClass } from '../../lib/class-options.mjs';
 import './resource-library.css';
 
 const PREVIEW_COUNT = 3;
@@ -102,7 +103,8 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
   useEffect(() => {
     function syncLocation() {
       const requested = new URLSearchParams(window.location.search).get('class') || '10';
-      const nextGrade = ['9', '10', '11', '12'].includes(requested) ? requested : '10';
+      const nextGrade = visibleClasses.map(String).includes(requested) ? requested : '10';
+      if (requested !== nextGrade) { const url = new URL(window.location.href); url.searchParams.set('class', nextGrade); window.history.replaceState(null, '', url); }
       setGrade(nextGrade);
       const slug = window.location.hash.slice(1);
       if (subjects.some(subject => subject.slug === slug)) { setActiveSlug(slug); setQuery(''); }
@@ -147,7 +149,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
   </section>;
 
   return <div className="resource-library">
-    <header className="library-intro"><div><span className="library-eyebrow"><span className="library-status-dot" /> YOUR CLASS {grade} STUDY SPACE</span><h1>Study Materials.<br className="sm:hidden" /> Made simple.</h1><p>Choose a subject, find what you need, and get started. All in one place, all free.</p></div><div className="library-stat"><strong>{totalCount.toLocaleString()}</strong><span>resources to explore</span></div></header>
+    <header className="library-intro"><div><span className="library-eyebrow"><span className="library-status-dot" /> YOUR {boardForClass(grade)} CLASS {grade} STUDY SPACE</span><h1>Study Materials.<br className="sm:hidden" /> Made simple.</h1><p>Choose a subject, find what you need, and get started. All in one place, all free.</p></div><div className="library-stat"><strong>{totalCount.toLocaleString()}</strong><span>resources to explore</span></div></header>
     <div className="library-search-area">
       <div className="library-search-box"><Search size={21} aria-hidden="true" /><label htmlFor="resource-search" className="sr-only">Search all Class {grade} resources</label><input ref={searchRef} id="resource-search" type="search" placeholder="Try “physics formula” or “maths sample paper”…" value={query} onChange={event => setQuery(event.target.value)} autoComplete="off" />{query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={18} /></button>}<span className="library-search-hint">Search all subjects</span></div>
       <div className="library-search-examples"><span>Quick finds</span>{['Formula sheets', 'Sample papers', 'Selina solutions'].map((label, index) => <button key={label} type="button" onClick={() => { setQuery(['formula', 'sample paper', 'selina'][index]); setSearchScope('all'); }}>{label}<ArrowRight size={12} aria-hidden="true" /></button>)}</div>
@@ -165,7 +167,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
           <div className="library-search-filter"><label htmlFor="search-subject">Subject</label><select id="search-subject" value={searchScope} onChange={event => setSearchScope(event.target.value)}><option value="all">All subjects</option>{subjects.map(subject => <option key={subject.slug} value={subject.slug}>{subject.name}</option>)}</select></div>
           {results.length ? <FileList key={`${query}-${searchScope}`} id="search-result-files" files={results.map(result => ({ ...result.file, path: `${result.subject} / ${result.file.path || result.category}` }))} preview={12} /> : <div className="library-empty"><Search size={28} aria-hidden="true" /><h3>{loaded ? 'No matching resources yet' : 'The full library is still loading'}</h3><p>{loaded ? 'Try a shorter phrase like “electricity”, check the spelling, or search another subject.' : 'Your search will update when the library is ready.'}</p><button type="button" className="library-more-button" onClick={() => { setSearchScope('all'); setQuery(''); searchRef.current?.focus(); }}>Clear search and start again</button></div>}
         </section> : activeSubject && <section key={activeSubject.slug} id={activeSubject.slug} aria-labelledby="subject-title">
-          <div className="library-content-heading"><div><span className="library-eyebrow">CLASS {grade} / STUDY MATERIALS</span><h2 id="subject-title"><SubjectIcon subject={activeSubject.slug} />{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
+          <div className="library-content-heading"><div><span className="library-eyebrow">{boardForClass(grade)} CLASS {grade} / STUDY MATERIALS</span><h2 id="subject-title"><SubjectIcon subject={activeSubject.slug} />{activeSubject.name}<span>{activeSubject.count.toLocaleString()} resources</span></h2><p>{activeSubject.description}</p></div></div>
           <div className="library-category-help"><span><FolderOpen size={15} aria-hidden="true" /> {activeSubject.categories.length} {activeSubject.categories.length === 1 ? 'category' : 'categories'}</span><span>Open a category to explore its files</span></div>
           <div className="library-categories">{activeSubject.categories.map((category, index) => <Category key={`${activeSubject.slug}-${index}`} category={category} index={index} subject={activeSubject.slug} loaded={loaded} />)}</div>
           {!activeSubject.count && <div className="library-empty"><h3>Resources are being added</h3><p>Choose another subject to keep exploring.</p></div>}

@@ -2,16 +2,17 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ThemeToggle from '../components/islands/ThemeToggle';
 import { getAvailableClassesSync } from '../lib/data';
-const classes = [12, 11, 10, 9];
+import { visibleClasses, boardForClass } from '../lib/class-options.mjs';
+const classes = visibleClasses;
 const available = getAvailableClassesSync();
 ---
 
-<BaseLayout title="ICSE Resources — Choose your class" description="Choose your class to find study notes, textbook solutions and practice papers. Browse available resources for your class." currentPath="/" selectionOnly>
+<BaseLayout title="ICSE & ISC Resources — Choose your class" description="Choose your class to find study notes, textbook solutions and practice papers. Browse available resources for your class." currentPath="/" selectionOnly>
   <div class="class-entry">
     <header class="entry-header">
-      <a class="entry-brand" href="/" aria-label="ICSE Resources home">
+      <a class="entry-brand" href="/" aria-label="ICSE & ISC Resources home">
         <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M3 5h7a4 4 0 0 1 4 4v15a4 4 0 0 0-4-4H3V5Zm22 0h-7a4 4 0 0 0-4 4v15a4 4 0 0 1 4-4h7V5Z" stroke="currentColor" stroke-width="1.5"/></svg>
-        <span>ICSE<span class="brand-secondary">Resources</span></span>
+        <span>ICSE & ISC<span class="brand-secondary">Resources</span></span>
       </a>
       <div class="entry-header-end"><span>THE STUDENT LIBRARY</span><ThemeToggle client:load /></div>
     </header>
@@ -23,7 +24,7 @@ const available = getAvailableClassesSync();
       </div>
       <nav class="entry-classes" aria-label="Choose your class">
         {classes.map(grade => <a href={`/study-materials?class=${grade}`} data-class-link={grade} class:list={['entry-class', { 'entry-class-ready': available.includes(String(grade)) }]}>
-          <div class="entry-class-top"><span>CLASS</span><span class="entry-availability">{available.includes(String(grade)) ? 'Available now' : 'Coming soon'}</span></div>
+          <div class="entry-class-top"><span>{boardForClass(grade)} · CLASS</span><span class="entry-availability">{available.includes(String(grade)) ? 'Available now' : 'Coming soon'}</span></div>
           <span class="entry-number">{grade}</span>
           <div class="entry-class-bottom"><span>{available.includes(String(grade)) ? 'Explore resources' : 'Take a look ahead'}</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg></div>
         </a>)}
@@ -50,7 +51,7 @@ const available = getAvailableClassesSync();
   h1 { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; font-size: clamp(2.6rem, 5.6vw, 5.1rem); font-weight: 600; letter-spacing: -.065em; line-height: 1.06; }
   h1 > span { color: hsl(var(--primary)); }
   .entry-description { padding-bottom: .35rem; font-size: .85rem; line-height: 1.8; color: hsl(var(--muted-foreground)); }
-  .entry-classes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .entry-classes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .entry-class { --entry-surface: 270 50% 94%; --entry-ink: 270 40% 28%; min-height: 264px; display: flex; flex-direction: column; justify-content: space-between; padding: 1.35rem; color: hsl(var(--entry-ink)); background: hsl(var(--entry-surface)); border: 1px solid hsl(var(--entry-ink) / .18); border-radius: 7px; transition: border-color 300ms ease, transform 300ms ease; }
   .entry-class:nth-child(2) { --entry-surface: 207 65% 94%; --entry-ink: 211 50% 29%; }
   .entry-class:nth-child(4) { --entry-surface: 154 42% 93%; --entry-ink: 158 45% 26%; }

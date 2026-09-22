@@ -28,7 +28,10 @@ async function ready() { await expect(page.locator('.library-load-status')).toHa
 async function noOverflow() { expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); }
 try {
   await page.goto(`${base}/`);
-  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(4);
+  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(2);
+  await expect(page.locator('[data-class-link="9"], [data-class-link="11"]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /ICSE.*CLASS.*10/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /ISC.*CLASS.*12/ })).toBeVisible();
   await expect(page.locator('#site-header, #app-modals-root, #resource-search')).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Your class.');
   await page.screenshot({ path: path.join(screenshots, 'home-desktop.png'), fullPage: true, animations: 'disabled' });
@@ -80,7 +83,7 @@ try {
   await page.getByLabel('Subject', { exact: true }).selectOption('physics');
   await expect(page.locator('.library-results [role="status"]')).toContainText('54 results');
   await page.getByRole('button', { name: 'Back to subjects' }).click();
-  for (const grade of [12, 11, 9]) {
+  for (const grade of [12]) {
     await page.locator(`[data-class-link="${grade}"]`).click();
     await expect(page.getByRole('heading', { name: `Class ${grade} resources are on the way.` })).toBeVisible();
     await expect(page.locator(`[data-class-link="${grade}"]`)).toHaveAttribute('aria-current', 'page');
@@ -149,16 +152,16 @@ try {
   await expect(plainPage.locator('.file-list a')).toHaveCount(flattenCatalog(expectedMaterials).length);
   await plainContext.close();
   // A newly discovered subject in another class needs no frontend code change.
-  await page.route('**/data/resource-catalog.json', route => route.fulfill({ json: { version: 1, classes: { '11': {
+  await page.route('**/data/resource-catalog.json', route => route.fulfill({ json: { version: 1, classes: { '12': {
     subjects: { name: 'subjects', type: 'folder', children: [] },
     pyq: { name: 'pyq', type: 'folder', children: [{ name: 'Economics', type: 'folder', children: [{ name: 'Economics 2026.pdf', type: 'file', id: 'economics-paper', archiveUrl: 'https://archive.org/details/example-economics' }] }] },
     specimen: { name: 'specimen', type: 'folder', children: [] },
   } } } }));
-  await page.goto(`${base}/study-materials?class=11#economics`);
+  await page.goto(`${base}/study-materials?class=12#economics`);
   await expect(page.locator('#subject-title')).toContainText('Economics');
   await expect(page.getByRole('heading', { name: 'PYQ', exact: true })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Class 11 subjects' }).getByRole('link')).toHaveCount(1);
-  await expect(page.getByRole('searchbox', { name: 'Search all Class 11 resources' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Class 12 subjects' }).getByRole('link')).toHaveCount(1);
+  await expect(page.getByRole('searchbox', { name: 'Search all Class 12 resources' })).toBeVisible();
   await expect(page.locator('.library-file-name')).toContainText('Economics 2026');
   await expect(page.locator('.library-file')).toHaveAttribute('href', '/resource?id=economics-paper&mode=download');
   await expect(page.getByRole('link', { name: /Server 2/ })).toHaveAttribute('href', '/resource?id=economics-paper&mode=download&server=2');

@@ -26,14 +26,14 @@ if (featured.length) subjects.push({
 const previews = subjects.map(subject => ({ ...subject, categories: subject.categories.map(category => ({ ...category, files: category.files.slice(0, 5) })) }));
 ---
 
-<BaseLayout title="ICSE Class 10 Study Materials, Revision Notes & Sample Papers" description="Find free ICSE Class 10 notes, textbook solutions and practice papers. Browse by subject or search the full resource library. Classes 9, 11 and 12 coming soon." currentPath="/study-materials">
+<BaseLayout title="ICSE & ISC Study Materials, Revision Notes & Sample Papers" description="Find free ICSE Class 10 notes, textbook solutions and practice papers. Browse by subject or search the full resource library. ISC Class 12 resources are being added." currentPath="/study-materials">
   <div id="top" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
     <nav class="flex items-center gap-2 text-xs text-muted-foreground mb-5" aria-label="Breadcrumb"><a href="/" class="hover:text-foreground">Home</a><span aria-hidden="true">/</span><span class="text-foreground">Study Materials</span></nav>
     <ClassNavigation selectedClass={10} />
     <ResourceLibrary subjects={previews} client:load />
     <noscript>
       <style>.resource-library { display: none; }</style>
-      <section class="mt-8 space-y-3"><h1 class="text-2xl font-bold">Class 10 Study Materials</h1><p>Class 9, 11 and 12 resources are coming soon. Browse all Class 10 files using the link below, or enable JavaScript for search and compact previews.</p>
+      <section class="mt-8 space-y-3"><h1 class="text-2xl font-bold">Class 10 Study Materials</h1><p>ISC Class 12 resources are being added. Browse all Class 10 files using the link below, or enable JavaScript for search and compact previews.</p>
         <a class="inline-flex underline py-3" href="/study-materials/all">Browse all Class 10 resources</a>
       </section>
     </noscript>

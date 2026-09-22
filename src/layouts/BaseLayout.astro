@@ -13,8 +13,8 @@ interface Props {
 }
 
 const {
-  title = "ICSE Resources - Class 10 Notes, Papers & Syllabi",
-  description = "Comprehensive educational hub for ICSE Class 10 students. Access official syllabi, specimen papers, chapter notes, and quizzes.",
+  title = "ICSE & ISC Resources - Class 10 & 12 Notes and Papers",
+  description = "Educational hub for ICSE Class 10 and ISC Class 12 students. Access official syllabi, specimen papers, chapter notes, and quizzes.",
   currentPath = Astro.url.pathname,
   ogImage = "/og-image.jpg",
   selectionOnly = false,
@@ -34,7 +34,7 @@ const canonicalUrl = new URL(currentPath, Astro.site || "https://class10icse.pag
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph & Social Metadata -->
-    <meta property="og:site_name" content="ICSE Resources" />
+    <meta property="og:site_name" content="ICSE & ISC Resources" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />

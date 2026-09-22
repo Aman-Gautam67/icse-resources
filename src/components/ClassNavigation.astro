@@ -1,11 +1,12 @@
 ---
 import { getAvailableClassesSync } from '../lib/data';
+import { visibleClasses, boardForClass } from '../lib/class-options.mjs';
 interface Props {
   selectedClass?: number | string;
 }
 
 const { selectedClass } = Astro.props;
-const classes = [12, 11, 10, 9];
+const classes = visibleClasses;
 const available = getAvailableClassesSync();
 ---
 
@@ -22,7 +23,7 @@ const available = getAvailableClassesSync();
         data-class-link={grade}
         aria-current={String(selectedClass) === String(grade) ? "page" : undefined}
       >
-        <span class="class-link-title">Class {grade}</span>
+        <span class="class-link-title">{boardForClass(grade)} · Class {grade}</span>
         <span class="class-link-status">
           {available.includes(String(grade)) && <span class="class-status-dot" aria-hidden="true"></span>}
           {available.includes(String(grade)) ? "Available" : "Coming soon"}
@@ -40,7 +41,7 @@ const available = getAvailableClassesSync();
   .class-navigation-heading { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-bottom: .65rem; }
   .class-navigation-heading p { font-size: .875rem; font-weight: 650; color: hsl(var(--foreground)); }
   .class-navigation-heading > span { font-size: .75rem; color: hsl(var(--muted-foreground)); }
-  .class-navigation-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; }
+  .class-navigation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
   .class-link { position: relative; display: flex; flex-direction: column; gap: .3rem; padding: .9rem 1rem; border: 1px solid hsl(var(--border)); border-radius: .85rem; background: hsl(var(--card) / .9); transition: background-color 160ms ease, border-color 160ms ease; }
   .class-link:hover { background: hsl(var(--accent)); border-color: hsl(var(--foreground) / .35); }
   .class-link:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 4px; }
