@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCisceResourcesSync, countFiles } from "../lib/data";
+import { driveUrl } from "../lib/resource-link.mjs";
 import type { FileNode } from "../lib/schemas";
 
 const cisceData = getCisceResourcesSync();
@@ -111,7 +112,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
               {doc.id && (
                 <div class="pt-4 mt-auto">
                   <a
-                    href={`https://drive.google.com/file/d/${doc.id}/view`}
+                    href={driveUrl(doc.id, 'view')}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
@@ -151,7 +152,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
               {file.id && (
                 <div class="pt-3 mt-auto">
                   <a
-                    href={`https://drive.google.com/file/d/${file.id}/view`}
+                    href={driveUrl(file.id, 'view')}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
@@ -194,7 +195,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
                     {file.id && (
                       <div class="pt-2 mt-auto">
                         <a
-                          href={`https://drive.google.com/file/d/${file.id}/view`}
+                          href={driveUrl(file.id, 'view')}
                           target="_blank"
                           rel="noopener noreferrer"
                           class="text-xs font-semibold text-primary hover:underline"
@@ -240,7 +241,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
                     {file.id && (
                       <div class="pt-2 mt-auto">
                         <a
-                          href={`https://drive.google.com/file/d/${file.id}/view`}
+                          href={driveUrl(file.id, 'view')}
                           target="_blank"
                           rel="noopener noreferrer"
                           class="text-xs font-semibold text-primary hover:underline"
@@ -286,7 +287,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
                     {file.id && (
                       <div class="pt-2 mt-auto">
                         <a
-                          href={`https://drive.google.com/file/d/${file.id}/view`}
+                          href={driveUrl(file.id, 'view')}
                           target="_blank"
                           rel="noopener noreferrer"
                           class="text-xs font-semibold text-primary hover:underline"
@@ -329,7 +330,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
                   <span class="text-foreground font-medium">{item.name}</span>
                   {item.id && (
                     <a
-                      href={`https://drive.google.com/file/d/${item.id}/view`}
+                      href={driveUrl(item.id, 'view')}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="text-xs font-semibold text-primary hover:underline shrink-0 ml-2"
@@ -356,7 +357,7 @@ const labFolder = topLevelFolders.find((f) => /Laboratory/i.test(f.name));
                   <span class="text-foreground font-medium">{item.name}</span>
                   {item.id && (
                     <a
-                      href={`https://drive.google.com/file/d/${item.id}/view`}
+                      href={driveUrl(item.id, 'view')}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="text-xs font-semibold text-primary hover:underline shrink-0 ml-2"

@@ -295,7 +295,7 @@ test('Footer includes disclaimer regarding independence from CISCE', () => {
 });
 
 test('Footer includes copyright notice and developer attribution', () => {
-  assert.match(footerContent, /©\s*\{currentYear\}\s*ICSE Resources\.\s*All rights reserved\./);
+  assert.match(footerContent, /©\s*\{currentYear\}\s*ICSE\s*(?:&\s*ISC\s*)?Resources\.\s*All rights reserved\./);
   assert.match(footerContent, /Jivaansh Yadav/);
 });
 

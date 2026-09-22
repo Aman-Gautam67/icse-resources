@@ -14,8 +14,12 @@ export interface SubjectSummary {
 export function getAvailableClassesSync(): string[] {
   const filename = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
   if (!fs.existsSync(filename)) return ['10'];
-  const catalog = JSON.parse(fs.readFileSync(filename, 'utf8'));
-  return Object.keys(catalog.classes || {}).filter(grade => countFiles(catalogMaterials(catalog, grade)) > 0);
+  try {
+    const catalog = JSON.parse(fs.readFileSync(filename, 'utf8'));
+    return Object.keys(catalog.classes || {}).filter(grade => countFiles(catalogMaterials(catalog, grade)) > 0);
+  } catch {
+    return ['10'];
+  }
 }
 
 const SUBJECT_METADATA: Record<string, { icon: string; description: string; slug: string }> = {
@@ -80,6 +84,7 @@ const SUBJECT_METADATA: Record<string, { icon: string; description: string; slug
  * Counts total files recursively in a FileNode tree
  */
 export function countFiles(node: FileNode): number {
+  if (!node || typeof node !== "object") return 0;
   if (node.type === "file") return 1;
   let count = 0;
   if (node.children && Array.isArray(node.children)) {
@@ -103,6 +108,9 @@ function resolveDataPath(filename: string): string {
  * Synchronously loads and validates study materials JSON data
  */
 export function getStudyMaterialsSync(): FileNode {
+  // Use the same catalogue as the interactive library, including verified mirrors.
+  const catalogPath = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
+  if (fs.existsSync(catalogPath)) return validateResourcesData(catalogMaterials(JSON.parse(fs.readFileSync(catalogPath, 'utf8')), '10'));
   const filePath = resolveDataPath("study-materials.json");
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
@@ -148,11 +156,11 @@ export async function getCisceResources(): Promise<FileNode> {
  */
 export function getSubjectSummary(studyMaterials?: FileNode): SubjectSummary[] {
   const materials = studyMaterials ?? getStudyMaterialsSync();
-  const folders = (materials.children || []).filter((c) => c.type === "folder");
+  const folders = (materials?.children || []).filter((c) => c?.type === "folder");
 
   const results: SubjectSummary[] = [];
 
-  const targetSubjects = folders.map(folder => folder.name);
+  const targetSubjects = folders.map(folder => folder?.name).filter(Boolean);
 
   for (const name of targetSubjects) {
     const folder = folders.find((f) => f.name === name);

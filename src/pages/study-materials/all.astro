@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { resourceUrl } from '../../lib/resource-link.mjs';
 import { getStudyMaterialsSync, getSubjectSummary } from '../../lib/data';
+import { subjectSlug } from '../../lib/resource-catalog.mjs';
 import { collectLibraryFiles, getLibraryCategories, type LibrarySubject } from '../../lib/resource-library';
 
 export const prerender = true;
@@ -12,7 +13,7 @@ const subjects: LibrarySubject[] = getSubjectSummary(materials).map(subject => {
   const categories = folder ? getLibraryCategories(folder) : [];
   return {
     name: subject.name,
-    slug: subject.name === 'Featured books' ? 'featured' : subject.path.split('#')[1],
+    slug: subject.name === 'Featured books' ? 'featured' : (subject.path?.split('#')[1] || subjectSlug(subject.name)),
     description: subject.description,
     categories,
     count: categories.reduce((sum, category) => sum + category.count, 0),

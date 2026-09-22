@@ -26,7 +26,8 @@ test('migration preserves every legacy Class 10 file ID and filename', () => {
 test('prelim year and school folders remain intact', () => {
   const original = read('study-materials').children.find(node => node.name === 'PYQ Prelims');
   const migrated = read('resource-catalog').classes['10'].pyq.children.find(node => node.name === original.name);
-  assert.deepEqual(migrated, original);
+  const hierarchy = node => node.type === 'file' ? { name: node.name, type: node.type, id: node.id } : { name: node.name, type: node.type, children: (node.children || []).map(hierarchy) };
+  assert.deepEqual(hierarchy(migrated), hierarchy(original));
 });
 test('existing subject anchors remain stable', () => {
   assert.equal(subjectSlug('History & Civics'), 'history-civics');

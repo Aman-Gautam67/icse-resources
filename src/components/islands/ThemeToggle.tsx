@@ -6,8 +6,13 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark") ||
-      (typeof localStorage !== "undefined" && localStorage.getItem("theme") === "dark");
+    let stored: string | null = null;
+    try {
+      if (typeof localStorage !== "undefined") {
+        stored = localStorage.getItem("theme");
+      }
+    } catch {}
+    const isDark = document.documentElement.classList.contains("dark") || stored === "dark";
     setTheme(isDark ? "dark" : "light");
     setMounted(true);
   }, []);

@@ -43,8 +43,8 @@ export const AppModals: React.FC = () => {
   // Handler for custom modal trigger events
   const handleOpenModal = useCallback((e: Event) => {
     const customEvent = e as CustomEvent<ModalEventDetail>;
-    const detail = customEvent.detail;
-    if (!detail) return;
+    const detail = customEvent?.detail;
+    if (!detail || typeof detail !== 'object' || typeof detail.modal !== 'string') return;
 
     const modal = detail.modal;
     switch (modal) {

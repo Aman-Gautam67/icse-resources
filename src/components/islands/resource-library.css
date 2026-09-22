@@ -171,3 +171,6 @@
   @keyframes library-reveal { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 }
 @media (prefers-reduced-motion: reduce) { .resource-library *, .library-placeholder * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+.library-subcategory { background: hsl(var(--card) / .6); border-radius: .75rem; }
+.library-subcategory summary { min-height: 3.4rem; padding: .75rem 1rem; }
+.library-category-subcategories { padding: 0 1.1rem 1rem; display: flex; flex-direction: column; gap: .6rem; }

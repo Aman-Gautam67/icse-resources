@@ -13,22 +13,23 @@ const PAGE_SIZE = 24;
 const normalize = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
 function FileCard({ file }: { file: LibraryFile }) {
-  const extension = file.name.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toUpperCase();
-  const name = file.name.replace(/\.(pdf|jpe?g|png|docx?|pptx?|xlsx?)$/i, '');
+  const fileName = file?.name || '';
+  const extension = fileName.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toUpperCase();
+  const name = fileName.replace(/\.(pdf|jpe?g|png|docx?|pptx?|xlsx?)$/i, '') || 'Resource';
   return (
     <li className="library-file-item">
       <div className="library-file-info">
         <span className="library-file-icon"><FileText size={18} aria-hidden="true" /></span>
         <span className="library-file-copy">
           <span className="library-file-name">{name}</span>
-          <span className="library-file-meta">{file.path || 'Study resource'} <span aria-hidden="true">·</span> {extension || 'File'}</span>
+          <span className="library-file-meta">{file?.path || 'Study resource'} <span aria-hidden="true">·</span> {extension || 'File'}</span>
         </span>
       </div>
       <div className="library-file-actions">
         <a className="library-file" href={resourceUrl(file, 'download')} target="_blank" rel="noopener noreferrer">
           Server 1 <ArrowRight size={14} aria-hidden="true" /><span className="sr-only"> (download {name}, opens in a new tab)</span>
         </a>
-        {file.archiveUrl && (
+        {file?.archiveUrl && (
           <a className="library-server" href={resourceUrl(file, 'download', '2')} target="_blank" rel="noopener noreferrer">
             Server 2 <ArrowRight size={14} aria-hidden="true" /><span className="sr-only"> — download {name} (opens in a new tab)</span>
           </a>
@@ -66,16 +67,44 @@ function FileList({ files, id, count = files.length, loaded = true, preview = PR
   </div>;
 }
 
-function Category({ category, index, subject, loaded }: { category: LibraryCategory; index: number; subject: string; loaded: boolean }) {
-  return <details className="library-category" open={index === 0}>
+function Category({ category, index, subject, loaded, depth = 0 }: { category: LibraryCategory; index: number; subject: string; loaded: boolean; depth?: number }) {
+  const directFiles = useMemo(() => {
+    if (!category.subcategories || category.subcategories.length === 0) return category.files;
+    const subNames = new Set(category.subcategories.map(s => s.name));
+    return category.files.filter(f => {
+      const parts = f.path.split('/').map(p => p.trim());
+      return !parts.some(p => subNames.has(p));
+    });
+  }, [category]);
+
+  return <details className={`library-category ${depth > 0 ? 'library-subcategory' : ''}`} open={index === 0 && depth === 0}>
     <summary><span className="library-category-icon"><FolderOpen size={18} aria-hidden="true" /></span><h3>{category.name}</h3><span className="library-category-count">{category.count.toLocaleString()} <span>files</span></span><ChevronDown className="library-chevron" size={17} aria-hidden="true" /></summary>
-    <FileList files={category.files} count={category.count} loaded={loaded} id={`${subject}-files-${index}`} />
+    {category.subcategories && category.subcategories.length > 0 ? (
+      <div className="library-category-subcategories">
+        {directFiles.length > 0 && (
+          <FileList files={directFiles} count={directFiles.length} loaded={loaded} id={`${subject}-files-${index}-direct`} />
+        )}
+        {category.subcategories.map((sub, subIndex) => (
+          <Category
+            key={`${subject}-${index}-${subIndex}`}
+            category={sub}
+            index={subIndex}
+            subject={`${subject}-${index}`}
+            loaded={loaded}
+            depth={depth + 1}
+          />
+        ))}
+      </div>
+    ) : (
+      <FileList files={category.files} count={category.count} loaded={loaded} id={`${subject}-files-${index}`} />
+    )}
   </details>;
 }
 
-export default function ResourceLibrary({ subjects: initialSubjects }: { subjects: LibrarySubject[] }) {
-  const defaultSlug = initialSubjects.find(subject => subject.slug === 'featured')?.slug || initialSubjects[0]?.slug || '';
-  const [subjects, setSubjects] = useState(initialSubjects);
+export default function ResourceLibrary({ subjects: initialSubjects = [] }: { subjects?: LibrarySubject[] }) {
+  const safeInitial = initialSubjects || [];
+  const defaultSlug = safeInitial.find(subject => subject?.slug === 'featured')?.slug || safeInitial[0]?.slug || '';
+  const [subjects, setSubjects] = useState(safeInitial);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -86,9 +115,9 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
   const searchRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const subjectNavRef = useRef<HTMLElement>(null);
-  const activeSubject = subjects.find(subject => subject.slug === activeSlug) || subjects[0];
-  const navSubjects = useMemo(() => [...subjects].sort((a, b) => Number(b.slug === 'featured') - Number(a.slug === 'featured')), [subjects]);
-  const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
+  const activeSubject = subjects.find(subject => subject?.slug === activeSlug) || subjects[0];
+  const navSubjects = useMemo(() => [...(subjects || [])].sort((a, b) => Number(b.slug === 'featured') - Number(a.slug === 'featured')), [subjects]);
+  const totalCount = (subjects || []).reduce((sum, subject) => sum + (subject.count || 0), 0);
   const isSearching = normalize(query).length > 0;
 
   useEffect(() => {
@@ -104,7 +133,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
       const materials = catalogMaterials(catalog, grade) as FileNode;
       const nextSubjects = (materials.children || []).map(folder => {
         const slug = folder.name === 'Featured books' ? 'featured' : subjectSlug(folder.name);
-        const previous = grade === '10' ? initialSubjects.find(subject => subject.name === folder.name) : undefined;
+        const previous = grade === '10' ? safeInitial.find(subject => subject.name === folder.name) : undefined;
         const categories = getLibraryCategories(folder);
         return { name: folder.name, slug, description: previous?.description || `Class ${grade} notes, previous year questions and specimen papers for ${folder.name}.`, categories, count: categories.reduce((sum, category) => sum + category.count, 0) };
       });
@@ -112,7 +141,7 @@ export default function ResourceLibrary({ subjects: initialSubjects }: { subject
       const requestedSlug = window.location.hash.slice(1);
       setActiveSlug(nextSubjects.find(subject => subject.slug === requestedSlug)?.slug || nextSubjects.find(subject => subject.slug === 'featured')?.slug || nextSubjects[0]?.slug || '');
       setLoaded(true);
-    }).catch(error => { if (error.name !== 'AbortError') setLoadError(true); });
+    }).catch(error => { if (error?.name !== 'AbortError') setLoadError(true); });
     return () => controller.abort();
   }, [initialSubjects, retry, grade]);
 

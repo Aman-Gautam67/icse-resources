@@ -157,6 +157,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
   }, [open, previewFile]);
 
   const showResource = useCallback((file: SearchItem) => {
+    if (!file) return;
     if (safeArchiveUrl(file.archiveUrl)) window.open(resourceUrl(file), '_blank', 'noopener,noreferrer');
     else setPreviewFile(file);
   }, []);
@@ -188,6 +189,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
 
   if (!open) return null;
 
+  // Google Drive standard preview and download endpoint definitions:
+  // Preview: https://drive.google.com/file/d/${id}/preview
+  // Download: https://drive.google.com/uc?export=download&id=${id}
   const previewUrl = (file: SearchItem) => resourceUrl(file, 'preview');
   const downloadUrl = (file: SearchItem) => resourceUrl(file, 'download');
 
@@ -418,27 +422,44 @@ const HighlightText: React.FC<{
   text: string;
   matches?: readonly FuseResultMatch[];
 }> = ({ text, matches }) => {
+  if (!text) return null;
   if (!matches || matches.length === 0) return <>{text}</>;
 
-  const indices: [number, number][] = [];
+  const rawIndices: [number, number][] = [];
   matches.forEach((m) => {
-    m.indices.forEach(([start, end]) => indices.push([start, end]));
+    m.indices?.forEach(([start, end]) => rawIndices.push([start, end]));
   });
-  indices.sort((a, b) => a[0] - b[0]);
+  if (rawIndices.length === 0) return <>{text}</>;
+  rawIndices.sort((a, b) => a[0] - b[0]);
+
+  // Merge overlapping and contiguous intervals to prevent character duplication
+  const merged: [number, number][] = [];
+  for (const [start, end] of rawIndices) {
+    if (!merged.length) {
+      merged.push([start, end]);
+    } else {
+      const prev = merged[merged.length - 1];
+      if (start <= prev[1] + 1) {
+        prev[1] = Math.max(prev[1], end);
+      } else {
+        merged.push([start, end]);
+      }
+    }
+  }
 
   const parts: React.ReactNode[] = [];
   let lastEnd = 0;
 
-  indices.forEach(([start, end], i) => {
+  merged.forEach(([start, end], i) => {
     if (start > lastEnd) {
       parts.push(<span key={`text-${i}`}>{text.slice(lastEnd, start)}</span>);
     }
     parts.push(
       <mark key={`mark-${i}`} className="bg-primary/20 text-foreground font-semibold rounded-sm px-0.5">
-        {text.slice(start, end + 1)}
+        {text.slice(Math.max(lastEnd, start), end + 1)}
       </mark>
     );
-    lastEnd = end + 1;
+    lastEnd = Math.max(lastEnd, end + 1);
   });
 
   if (lastEnd < text.length) {

@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ClassNavigation from '../components/ClassNavigation.astro';
 import ResourceLibrary from '../components/islands/ResourceLibrary';
 import { getStudyMaterialsSync, getSubjectSummary } from '../lib/data';
+import { subjectSlug } from '../lib/resource-catalog.mjs';
 import { collectLibraryFiles, getLibraryCategories, type LibrarySubject } from '../lib/resource-library';
 
 const materials = getStudyMaterialsSync();
@@ -11,7 +12,7 @@ const subjects: LibrarySubject[] = getSubjectSummary(materials).map(subject => {
   const categories = folder ? getLibraryCategories(folder) : [];
   return {
     name: subject.name,
-    slug: subject.name === 'Featured books' ? 'featured' : subject.path.split('#')[1],
+    slug: subject.name === 'Featured books' ? 'featured' : (subject.path?.split('#')[1] || subjectSlug(subject.name)),
     description: subject.description,
     categories,
     count: categories.reduce((sum, category) => sum + category.count, 0),
@@ -23,7 +24,14 @@ if (featured.length) subjects.push({
   categories: [{ name: 'Question banks & handbooks', files: featured, count: featured.length }], count: featured.length,
 });
 // Small server-rendered previews; the complete existing data is fetched once in the browser.
-const previews = subjects.map(subject => ({ ...subject, categories: subject.categories.map(category => ({ ...category, files: category.files.slice(0, 5) })) }));
+function trimCategory(cat: LibraryCategory): LibraryCategory {
+  return {
+    ...cat,
+    files: cat.files.slice(0, 5),
+    subcategories: cat.subcategories ? cat.subcategories.slice(0, 3).map(sub => ({ ...sub, files: sub.files.slice(0, 3), subcategories: undefined })) : undefined,
+  };
+}
+const previews = subjects.map(subject => ({ ...subject, categories: subject.categories.map(trimCategory) }));
 ---
 
 <BaseLayout title="ICSE & ISC Study Materials, Revision Notes & Sample Papers" description="Find free ICSE Class 10 notes, textbook solutions and practice papers. Browse by subject or search the full resource library. ISC Class 12 resources are being added." currentPath="/study-materials">

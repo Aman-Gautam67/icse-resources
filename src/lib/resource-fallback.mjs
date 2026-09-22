@@ -22,7 +22,8 @@ export async function reachable(url, provider, fetcher = fetch) {
         await response.body?.cancel();
         const location = response.headers.get('location');
         if (!location) return false;
-        target = new URL(location, target); continue;
+        try { target = new URL(location, target); } catch { return false; }
+        continue;
       }
       if (!response.ok) { await response.body?.cancel(); return false; }
       if (!/text\/html|text\/plain|application\/json/i.test(response.headers.get('content-type') || '')) { await response.body?.cancel(); return true; }
@@ -59,25 +60,42 @@ export async function resolveResource(file, mode = 'view', check = reachable, se
 }
 
 export function createResourceHandler(files, check = reachable) {
-  const mirrored = new Map(files.filter(file => safeArchiveUrl(file.archiveUrl)).map(file => [file.id, file]));
+  const safeFiles = Array.isArray(files) ? files : [];
+  const mirrored = new Map(safeFiles.filter(file => safeArchiveUrl(file?.archiveUrl)).map(file => [file.id, file]));
   const cache = new Map();
   return async url => {
-    const id = url.searchParams.get('id');
-    const mode = ['view', 'preview', 'download'].includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'view';
-    const file = mirrored.get(id);
-    if (!file) return new Response('Resource not found.', { status: 404 });
-    const server = url.searchParams.get('server') === '2' ? '2' : '1';
-    const key = `${id}:${mode}:${server}`;
-    let cached = cache.get(key);
-    if (!cached || cached.expires <= Date.now()) {
-      const destination = await resolveResource(file, mode, check, server);
-      cached = { destination, expires: Date.now() + (destination ? 60000 : 5000) };
-      if (cache.size >= 1000) cache.delete(cache.keys().next().value);
-      cache.set(key, cached);
+    try {
+      if (!url || !url.searchParams) return new Response('Bad request.', { status: 400 });
+      const id = url.searchParams.get('id');
+      if (!id) return new Response('Resource not found.', { status: 404 });
+      const mode = ['view', 'preview', 'download'].includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'view';
+      const file = mirrored.get(id);
+      if (!file) return new Response('Resource not found.', { status: 404 });
+      const server = url.searchParams.get('server') === '2' ? '2' : '1';
+      const key = `${id}:${mode}:${server}`;
+      let cached = cache.get(key);
+      if (!cached || cached.expires <= Date.now()) {
+        const destination = await resolveResource(file, mode, check, server);
+        cached = { destination, expires: Date.now() + (destination ? 60000 : 5000) };
+        if (cache.size >= 1000) cache.delete(cache.keys().next().value);
+        cache.set(key, cached);
+      }
+      if (cached.destination) {
+        try {
+          const destUrl = new URL(cached.destination);
+          if (!allowedHost(destUrl, 'archive') && !allowedHost(destUrl, 'drive')) {
+            return new Response('Invalid resource destination.', { status: 500 });
+          }
+        } catch {
+          return new Response('Invalid resource destination.', { status: 500 });
+        }
+        return new Response(null, { status: 302, headers: { Location: cached.destination, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } });
+      }
+      return new Response('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resource temporarily unavailable</title><h1>This resource is temporarily unavailable.</h1><p>Neither copy could be reached. Please try again shortly.</p><p><a href="">Try again</a> · <a href="/study-materials">Back to resources</a></p></html>', {
+        status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '5', 'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'self'" },
+      });
+    } catch {
+      return new Response('Resource temporarily unavailable.', { status: 500 });
     }
-    if (cached.destination) return new Response(null, { status: 302, headers: { Location: cached.destination, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } });
-    return new Response('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resource temporarily unavailable</title><h1>This resource is temporarily unavailable.</h1><p>Neither copy could be reached. Please try again shortly.</p><p><a href="">Try again</a> · <a href="/study-materials">Back to resources</a></p></html>', {
-      status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '5', 'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'self'" },
-    });
   };
 }

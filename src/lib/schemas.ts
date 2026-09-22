@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { normalizeArchiveUrl } from './archive-url.mjs';
-const ArchiveUrlSchema = z.string().refine(value => {
+const ArchiveUrlSchema = z.string().nullable().optional().refine(value => {
+  if (value === undefined || value === null || !value.trim()) return true;
   try { return !!normalizeArchiveUrl(value); } catch { return false; }
-}, 'Invalid Internet Archive URL').optional();
+}, 'Invalid Internet Archive URL');
 
 export interface FileNode {
   name: string;
