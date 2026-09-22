@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Info, GitCommit, ExternalLink, X, BookOpen, ShieldCheck, Loader2 } from "lucide-react";
+import { Info, GitCommit, ExternalLink, X, BookOpen, ShieldCheck, Loader2, Sparkles } from "lucide-react";
 
 export interface InfoModalProps {
   open: boolean;
@@ -142,7 +142,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({ open, onClose }) => {
           </div>
 
           {/* Feature Badges */}
-          <div className="grid grid-cols-2 gap-2 mb-5">
+          <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-background">
               <BookOpen className="h-4 w-4 text-primary shrink-0" />
               <span className="text-xs font-medium text-foreground">6,500+ Curated Files</span>
@@ -152,6 +152,23 @@ export const InfoModal: React.FC<InfoModalProps> = ({ open, onClose }) => {
               <span className="text-xs font-medium text-foreground">CISCE Aligned</span>
             </div>
           </div>
+
+          {/* Replay Feature Tour */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("app:open-modal", { detail: { modal: "tutorial" } })
+                );
+              }
+            }}
+            className="w-full mb-5 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-all shadow-sm active:scale-[0.99] cursor-pointer"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>Replay Feature Tour & Updates Tutorial</span>
+          </button>
 
           {/* Latest Git Commit Card */}
           <div className="rounded-xl border border-border bg-background p-4">

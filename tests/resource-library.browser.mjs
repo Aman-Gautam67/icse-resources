@@ -21,6 +21,14 @@ const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 
 const screenshots = path.resolve('../ui-review');
 await mkdir(screenshots, { recursive: true });
 const context = await browser.newContext({ viewport: { width: 1366, height: 1000 }, colorScheme: 'light' });
+await context.addInitScript(() => {
+  window.localStorage.setItem('icse_user_registry_tutorial_v1', JSON.stringify({
+    hasSeenTutorial: true,
+    tutorialVersion: 1,
+    completedAt: Date.now(),
+    method: 'completed'
+  }));
+});
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));

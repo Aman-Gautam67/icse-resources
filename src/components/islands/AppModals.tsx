@@ -5,9 +5,11 @@ import QuizModal from "./QuizModal";
 import InfoModal from "./InfoModal";
 import DonateModal from "./DonateModal";
 import SocialModals, { type SocialModalType } from "./SocialModals";
+import TutorialModal from "./TutorialModal";
+import { hasUserCompletedTutorial } from "../../lib/user-registry";
 
 export interface ModalEventDetail {
-  modal: "search" | "info" | "donate" | "quiz" | "quizzes" | "reddit" | "discord" | "explorer" | "file-explorer";
+  modal: "search" | "info" | "donate" | "quiz" | "quizzes" | "reddit" | "discord" | "explorer" | "file-explorer" | "tutorial";
   initialPath?: string;
   initialData?: "cisce" | "study";
   dataType?: "cisce" | "study";
@@ -32,6 +34,7 @@ export const AppModals: React.FC = () => {
   const [quizOpen, setQuizOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [donateOpen, setDonateOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [socialModal, setSocialModal] = useState<SocialModalType>(null);
   const [explorerState, setExplorerState] = useState<ExplorerState>({
     open: false,
@@ -39,6 +42,16 @@ export const AppModals: React.FC = () => {
     initialPath: undefined,
     data: null,
   });
+
+  // Auto-launch tutorial on first visit after a slight delay if user hasn't completed or skipped it
+  useEffect(() => {
+    if (typeof window !== "undefined" && !hasUserCompletedTutorial()) {
+      const timer = window.setTimeout(() => {
+        setTutorialOpen(true);
+      }, 700);
+      return () => window.clearTimeout(timer);
+    }
+  }, []);
 
   // Handler for custom modal trigger events
   const handleOpenModal = useCallback((e: Event) => {
@@ -60,6 +73,9 @@ export const AppModals: React.FC = () => {
         break;
       case "donate":
         setDonateOpen(true);
+        break;
+      case "tutorial":
+        setTutorialOpen(true);
         break;
       case "reddit":
         setSocialModal("reddit");
@@ -86,6 +102,7 @@ export const AppModals: React.FC = () => {
   const handleOpenQuiz = useCallback(() => setQuizOpen(true), []);
   const handleOpenInfo = useCallback(() => setInfoOpen(true), []);
   const handleOpenDonate = useCallback(() => setDonateOpen(true), []);
+  const handleOpenTutorial = useCallback(() => setTutorialOpen(true), []);
   const handleOpenExplorer = useCallback((e: Event) => {
     const customEvent = e as CustomEvent<{ type?: "study" | "cisce"; path?: string; data?: FileNode }>;
     setExplorerState({
@@ -112,6 +129,7 @@ export const AppModals: React.FC = () => {
     window.addEventListener("open-quiz", handleOpenQuiz);
     window.addEventListener("open-info", handleOpenInfo);
     window.addEventListener("open-donate", handleOpenDonate);
+    window.addEventListener("open-tutorial", handleOpenTutorial);
     window.addEventListener("open-explorer", handleOpenExplorer);
     window.addEventListener("keydown", handleKeyDown);
 
@@ -122,6 +140,7 @@ export const AppModals: React.FC = () => {
       window.removeEventListener("open-quiz", handleOpenQuiz);
       window.removeEventListener("open-info", handleOpenInfo);
       window.removeEventListener("open-donate", handleOpenDonate);
+      window.removeEventListener("open-tutorial", handleOpenTutorial);
       window.removeEventListener("open-explorer", handleOpenExplorer);
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -131,6 +150,7 @@ export const AppModals: React.FC = () => {
     handleOpenQuiz,
     handleOpenInfo,
     handleOpenDonate,
+    handleOpenTutorial,
     handleOpenExplorer,
     handleKeyDown,
   ]);
@@ -159,6 +179,9 @@ export const AppModals: React.FC = () => {
 
       {/* Donate Modal */}
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
+
+      {/* First-Time Feature & Updates Tutorial Modal */}
+      <TutorialModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
 
       {/* Social Communities Modals (Reddit & Discord) */}
       <SocialModals activeModal={socialModal} onClose={() => setSocialModal(null)} />
