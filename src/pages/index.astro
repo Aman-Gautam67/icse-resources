@@ -20,7 +20,7 @@ const available = getAvailableClassesSync();
     <section class="entry-content" aria-labelledby="class-title">
       <div class="entry-heading">
         <div><p class="entry-eyebrow"><span></span> A LITTLE DIRECTION. A LOT TO DISCOVER.</p><h1 id="class-title">Your class.<br /><span>Your starting point.</span></h1></div>
-        <p class="entry-description">Choose your class to find the notes,<br class="desktop-break" /> guides, and practice papers you need.</p>
+        <p class="entry-description">Choose your class to find the notes,<br class="desktop-break" /> guides, and practice papers you need for ICSE Class 10 and more.</p>
       </div>
       <nav class="entry-classes" aria-label="Choose your class">
         {classes.map(grade => <a href={`/study-materials?class=${grade}`} data-class-link={grade} class:list={['entry-class', { 'entry-class-ready': available.includes(String(grade)) }]}>

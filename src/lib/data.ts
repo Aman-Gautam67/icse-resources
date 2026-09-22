@@ -103,15 +103,15 @@ function resolveDataPath(filename: string): string {
  * Synchronously loads and validates study materials JSON data
  */
 export function getStudyMaterialsSync(): FileNode {
-  const catalogPath = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
-  if (fs.existsSync(catalogPath)) return validateResourcesData(catalogMaterials(JSON.parse(fs.readFileSync(catalogPath, 'utf8')), '10'));
   const filePath = resolveDataPath("study-materials.json");
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
     const json = JSON.parse(raw);
     return validateResourcesData(json);
-  } catch (err: any) {
-    throw new Error(`Failed to load or validate study-materials.json: ${err.message}`);
+  } catch {
+    const catalogPath = path.resolve(process.cwd(), 'public/data/resource-catalog.json');
+    if (fs.existsSync(catalogPath)) return validateResourcesData(catalogMaterials(JSON.parse(fs.readFileSync(catalogPath, 'utf8')), '10'));
+    throw new Error(`Data file not found at ${filePath}. Ensure public/data/study-materials.json exists.`);
   }
 }
 
