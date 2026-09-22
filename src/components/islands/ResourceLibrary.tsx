@@ -86,7 +86,7 @@ function Category({ category, index, subject, loaded, depth = 0 }: { category: L
     });
   }, [category]);
 
-  return <details className={`library-category ${depth > 0 ? 'library-subcategory' : ''}`} open={index === 0 && depth === 0}>
+  return <details className={`library-category ${depth > 0 ? 'library-subcategory' : ''}`}>
     <summary><span className="library-category-icon"><FolderOpen size={18} aria-hidden="true" /></span><h3>{category.name}</h3><span className="library-category-count">{category.count.toLocaleString()} <span>files</span></span><ChevronDown className="library-chevron" size={17} aria-hidden="true" /></summary>
     {category.subcategories && category.subcategories.length > 0 ? (
       <div className="library-category-subcategories">

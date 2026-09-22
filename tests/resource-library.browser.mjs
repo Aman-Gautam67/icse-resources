@@ -45,7 +45,9 @@ try {
   await expect(page.locator('.library-subjects .subject-icon')).toHaveCount(expectedMaterials.children.length);
   await page.getByRole('navigation', { name: 'Class 10 subjects' }).getByRole('link', { name: /Physics/ }).click();
   await expect(page.locator('#subject-title')).toContainText('Physics');
+  await expect(page.locator('.library-category[open]')).toHaveCount(0);
   const guides = page.locator('.library-category').first();
+  await guides.locator('summary').click();
   await expect(guides.locator('.library-files .library-file')).toHaveCount(3);
   expect(await guides.locator('.library-fade-preview').evaluate(element => getComputedStyle(element).filter)).toContain('blur');
   await guides.getByRole('button', { name: /Show more/ }).click();
@@ -162,6 +164,8 @@ try {
   await expect(page.getByRole('heading', { name: 'PYQ', exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Class 12 subjects' }).getByRole('link')).toHaveCount(1);
   await expect(page.getByRole('searchbox', { name: 'Search all Class 12 resources' })).toBeVisible();
+  await expect(page.locator('.library-category[open]')).toHaveCount(0);
+  await page.locator('.library-category summary').first().click();
   await expect(page.locator('.library-file-name')).toContainText('Economics 2026');
   await expect(page.locator('.library-file')).toHaveAttribute('href', '/resource?id=economics-paper&mode=download');
   await page.locator('.library-file').click();
