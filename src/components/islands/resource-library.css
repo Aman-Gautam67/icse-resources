@@ -62,17 +62,21 @@
 .library-category > .library-file-list { padding: 0 1.1rem .2rem; }
 .library-files { display: flex; flex-direction: column; list-style: none; }
 .library-files li { min-width: 0; }
-.library-server { display: inline-flex; align-items: center; gap: .5rem; margin: 0 0 .8rem .25rem; padding: .5rem .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; font-size: .75rem; color: hsl(var(--library-accent)); }
-.library-server:hover { background: hsl(var(--muted)); }
-.library-server:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.library-file { display: flex; align-items: center; gap: .8rem; border-top: 1px solid hsl(var(--border) / .65); padding: .9rem .25rem; min-height: 4.5rem; transition: background-color 160ms; }
-.library-file:hover { background: hsl(var(--muted) / .45); }
+.library-file-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid hsl(var(--border) / .65); padding: .85rem .25rem; min-height: 4.2rem; transition: background-color 160ms; }
+.library-file-item:hover { background: hsl(var(--muted) / .35); }
+.library-file-info { display: flex; align-items: center; gap: .8rem; min-width: 0; flex: 1; }
 .library-file-icon { color: hsl(var(--muted-foreground)); flex-shrink: 0; padding: .4rem; border-radius: .45rem; background: hsl(var(--muted) / .55); }
 .library-file-copy { display: flex; flex-direction: column; gap: .3rem; min-width: 0; flex: 1; }
 .library-file-name { font-size: .8rem; font-weight: 550; line-height: 1.5; overflow-wrap: anywhere; }
 .library-file-meta { font-size: .63rem; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; line-height: 1.5; }
+.library-file-actions { display: inline-flex; align-items: center; gap: .45rem; flex-shrink: 0; }
+.library-file, .library-server { display: inline-flex; align-items: center; gap: .35rem; padding: .38rem .7rem; border-radius: .5rem; font-size: .73rem; font-weight: 550; text-decoration: none; white-space: nowrap; transition: all 160ms ease; line-height: 1.4; }
+.library-file { background: hsl(var(--muted) / .7); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
+.library-file:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.library-server { background: hsl(var(--primary) / .08); color: hsl(var(--primary)); border: 1px solid hsl(var(--primary) / .28); margin: 0; }
+.library-server:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.library-file:focus-visible, .library-server:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
 .library-open { display: flex; gap: .35rem; align-items: center; color: hsl(var(--muted-foreground)); font-size: .65rem; flex-shrink: 0; }
-.library-file:hover .library-open { color: hsl(var(--library-accent)); }
 .library-more { position: relative; min-height: 5rem; display: flex; justify-content: center; align-items: end; padding: 1rem 0 .8rem; }
 .library-fade-preview { position: absolute; inset: 0; overflow: hidden; pointer-events: none; filter: blur(2px); opacity: .45; mask-image: linear-gradient(to bottom, black, transparent 90%); }
 .library-ghost { display: flex; align-items: center; gap: .8rem; height: 3.7rem; border-top: 1px solid hsl(var(--border)); font-size: .78rem; padding: .5rem .7rem; }
@@ -150,10 +154,12 @@
   .library-category h3 { font-size: .78rem; }
   .library-category-count span { display: none; }
   .library-category > .library-file-list { padding: 0 .8rem; }
-  .library-file { gap: .6rem; }
+  .library-file-item { flex-direction: column; align-items: flex-start; gap: .6rem; padding: .75rem .25rem; }
+  .library-file-info { width: 100%; }
+  .library-file-actions { width: 100%; justify-content: flex-end; gap: .4rem; }
+  .library-file, .library-server { padding: .32rem .6rem; font-size: .7rem; }
   .library-file-name { font-size: .76rem; }
   .library-file-meta { font-size: .62rem; }
-  .library-open { font-size: .625rem; }
   .library-file-icon { padding: .3rem; }
   .library-next-step { align-items: start; flex-direction: column; gap: .3rem; }
   .library-search-filter select { width: 100%; }

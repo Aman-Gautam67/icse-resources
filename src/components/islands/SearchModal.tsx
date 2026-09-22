@@ -313,13 +313,25 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                      className="px-2 py-1 rounded-md bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium"
                       title="Server 1"
                       aria-label={`Server 1 — download ${result.item.name}`}
                     >
-                      <span className="text-xs">Server 1</span>
+                      Server 1
                     </a>
-                    {safeArchiveUrl(result.item.archiveUrl) && <a href={resourceUrl(result.item, 'download', '2')} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} className="p-1.5 rounded-lg hover:bg-primary/10 text-xs" aria-label={`Server 2 — download ${result.item.name}`}>Server 2</a>}
+                    {safeArchiveUrl(result.item.archiveUrl) && (
+                      <a
+                        href={resourceUrl(result.item, 'download', '2')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        className="px-2 py-1 rounded-md bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/25 transition-colors text-xs font-medium text-primary"
+                        title="Server 2"
+                        aria-label={`Server 2 — download ${result.item.name}`}
+                      >
+                        Server 2
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}
@@ -351,16 +363,30 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             <span className="hidden sm:block text-xs text-muted-foreground truncate max-w-[240px]">
               {previewFile.path}
             </span>
-            <a
-              href={downloadUrl(previewFile)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg hover:bg-accent transition-colors"
-              title="Server 1"
-              aria-label="Server 1 — download file"
-            >
-              <span className="text-xs text-primary">Server 1</span>
-            </a>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <a
+                href={downloadUrl(previewFile)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border transition-colors text-xs font-medium text-foreground"
+                title="Server 1"
+                aria-label="Server 1 — download file"
+              >
+                Server 1
+              </a>
+              {safeArchiveUrl(previewFile.archiveUrl) && (
+                <a
+                  href={resourceUrl(previewFile, 'download', '2')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/25 transition-colors text-xs font-medium text-primary"
+                  title="Server 2"
+                  aria-label="Server 2 — download file"
+                >
+                  Server 2
+                </a>
+              )}
+            </div>
             <button
               ref={closePreviewRef}
               type="button"
