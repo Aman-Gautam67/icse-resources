@@ -1,6 +1,13 @@
 # Logs
 *.log
 
+# Private administration (share directly with the second administrator only)
+.local-admin/
+oauth-client*.json
+credentials*.json
+token*.json
+*.pem
+
 # Dependencies
 node_modules
 
@@ -20,9 +27,45 @@ dist-ssr
 
 service-account.json
 
+# Astro build
+.astro
+
+# wrangler files
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Env files
+*.local
+
+# Editor/system files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+service-account.json
+
+# Astro build
+.astro
+
 # wrangler files
 .wrangler
 .dev.vars*
 !.dev.vars.example
 .env*
 !.env.example
+
+# Agents & Workflows
+.agents
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
+.e2e-results.json
+*.zip
+enable-dual-network.cmd

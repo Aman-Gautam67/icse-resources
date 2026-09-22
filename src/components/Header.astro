@@ -1,0 +1,146 @@
+---
+import ThemeToggle from "./islands/ThemeToggle";
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+const links = [
+  { href: "/study-materials", label: "Study materials" },
+  { href: "/cisce", label: "CISCE papers" },
+  { href: "/quizzes", label: "Quizzes" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+const communities = [
+  { href: "https://discord.gg/xGD8SnvuKX", label: "Discord" },
+  { href: "https://reddit.com/r/ICSE", label: "Reddit" },
+  { href: "https://github.com/Jivaansh-Yadav/class-10-icse", label: "GitHub" },
+];
+---
+
+<header id="site-header" class="sticky top-0 z-40 w-full border-b border-border/40 bg-background/90 backdrop-blur-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 lg:gap-4">
+    <a href="/" class="flex shrink-0 items-center gap-2 font-bold text-sm sm:text-base text-foreground rounded-lg hover:opacity-90 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" aria-label="ICSE & ISC Resources home">
+      <span class="hidden min-[400px]:flex p-2 rounded-xl bg-primary/10 text-primary items-center justify-center" aria-hidden="true">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0-3-3h7z"></path>
+        </svg>
+      </span>
+      <span class="tracking-tight whitespace-nowrap">ICSE & ISC <span class="text-primary font-extrabold">Resources</span></span>
+    </a>
+
+    <nav aria-label="Main navigation" class="hidden lg:flex items-center gap-0.5 text-sm font-medium">
+      {links.map(({ href, label }) => (
+        <a href={href} aria-current={currentPath.startsWith(href) ? "page" : undefined}
+          class={`px-2.5 py-2 rounded-lg whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${currentPath.startsWith(href) ? "bg-accent text-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
+          {label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="flex shrink-0 items-center gap-1 sm:gap-2">
+      <button type="button" onclick="window.dispatchEvent(new CustomEvent('app:open-modal', { detail: { modal: 'search' } }))"
+        class="flex min-h-10 min-w-10 items-center justify-center gap-2 px-2.5 sm:px-3 rounded-full border border-border bg-card/60 hover:bg-accent text-muted-foreground hover:text-foreground text-sm shadow-sm transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        aria-label="Search resources" title="Search (Ctrl+K or ⌘K)">
+        <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <span class="hidden sm:inline">Search</span>
+        <kbd aria-hidden="true" class="hidden xl:inline-flex px-1.5 py-0.5 text-[10px] font-mono rounded border border-border bg-muted">Ctrl K</kbd>
+      </button>
+
+      <button type="button" onclick="window.dispatchEvent(new CustomEvent('app:open-modal', { detail: { modal: 'donate' } }))"
+        class="hidden xl:flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-primary hover:bg-accent transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        aria-label="Support this site" title="Support this site">
+        <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+        </svg>
+      </button>
+
+      <button type="button" onclick="window.dispatchEvent(new CustomEvent('app:open-modal', { detail: { modal: 'info' } }))"
+        class="hidden xl:flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        aria-label="Site information" title="Site information">
+        <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path>
+        </svg>
+      </button>
+
+      <ThemeToggle client:load />
+
+      <button type="button" id="mobile-nav-toggle"
+        class="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        aria-label="Open navigation menu" aria-controls="mobile-nav-menu" aria-expanded="false">
+        <svg id="hamburger-icon" aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg id="close-icon" aria-hidden="true" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-nav-menu" aria-label="Mobile navigation" hidden class="lg:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-border/40 bg-background px-4 pt-3 pb-4">
+    <div class="max-w-7xl mx-auto space-y-1">
+      <a href="/" aria-current={currentPath === "/" ? "page" : undefined} class="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50">Choose your class</a>
+      {links.map(({ href, label }) => (
+        <a href={href} aria-current={currentPath.startsWith(href) ? "page" : undefined}
+          class={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPath.startsWith(href) ? "bg-accent text-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
+          {label}
+        </a>
+      ))}
+      <div class="flex flex-wrap gap-1 border-t border-border/40 pt-3 mt-3">
+        <button type="button" onclick="window.dispatchEvent(new CustomEvent('app:open-modal', { detail: { modal: 'donate' } }))" class="px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent">Support this site</button>
+        <button type="button" onclick="window.dispatchEvent(new CustomEvent('app:open-modal', { detail: { modal: 'info' } }))" class="px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent">Site information</button>
+      </div>
+      <div class="flex flex-wrap gap-1">
+        {communities.map(({ href, label }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent">{label} <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
+        ))}
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  const toggleButton = document.getElementById("mobile-nav-toggle");
+  const menu = document.getElementById("mobile-nav-menu");
+  const header = document.getElementById("site-header");
+  const hamburgerIcon = document.getElementById("hamburger-icon");
+  const closeIcon = document.getElementById("close-icon");
+
+  if (toggleButton && menu && header) {
+    const setMenuOpen = (open: boolean, restoreFocus = false) => {
+      menu.hidden = !open;
+      toggleButton.setAttribute("aria-expanded", String(open));
+      toggleButton.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+      hamburgerIcon?.classList.toggle("hidden", open);
+      closeIcon?.classList.toggle("hidden", !open);
+      if (restoreFocus) toggleButton.focus();
+    };
+
+    toggleButton.addEventListener("click", () => setMenuOpen(menu.hidden));
+    menu.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.closest("a, button")) setMenuOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !menu.hidden) {
+        event.preventDefault();
+        setMenuOpen(false, true);
+      }
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!menu.hidden && event.target instanceof Node && !header.contains(event.target)) setMenuOpen(false);
+    });
+    header.addEventListener("focusout", (event) => {
+      if (!menu.hidden && event.relatedTarget instanceof Node && !header.contains(event.relatedTarget)) setMenuOpen(false);
+    });
+    window.addEventListener("app:open-modal", () => setMenuOpen(false));
+    window.matchMedia("(min-width: 1024px)").addEventListener("change", (event) => {
+      if (event.matches) setMenuOpen(false);
+    });
+  }
+</script>

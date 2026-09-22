@@ -1,0 +1,87 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import AppModals from "../components/islands/AppModals";
+import "../index.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  currentPath?: string;
+  ogImage?: string;
+  selectionOnly?: boolean;
+}
+
+const {
+  title = "ICSE & ISC Resources - Class 10 & 12 Notes and Papers",
+  description = "Educational hub for ICSE Class 10 and ISC Class 12 students. Access official syllabi, specimen papers, chapter notes, and quizzes.",
+  currentPath = Astro.url.pathname,
+  ogImage = "/og-image.jpg",
+  selectionOnly = false,
+} = Astro.props;
+
+const canonicalUrl = new URL(currentPath, Astro.site || "https://class10icse.pages.dev").href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph & Social Metadata -->
+    <meta property="og:site_name" content="ICSE & ISC Resources" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- ZERO-FOUC INLINE SCRIPT: Evaluated synchronously before DOM render to eliminate flash -->
+    <script is:inline>
+      (function () {
+        try {
+          const stored = localStorage.getItem("theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = stored ? stored : (prefersDark ? "dark" : "light");
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-background text-foreground min-h-screen flex flex-col antialiased selection:bg-primary/20 selection:text-primary relative">
+    <div class="breathing-background" aria-hidden="true">
+      <div class="breathing-orb breathing-orb-one"></div>
+      <div class="breathing-orb breathing-orb-two"></div>
+    </div>
+
+    <!-- Global Header -->
+    {!selectionOnly && <Header currentPath={currentPath} />}
+
+    <!-- Main Content Shell -->
+    <main class="min-h-screen flex-1">
+      <slot />
+    </main>
+
+    <!-- Global Footer -->
+    {!selectionOnly && <Footer />}
+
+    <!-- Shared dialogs power navigation and search on every page. -->
+    {!selectionOnly && <AppModals client:load />}
+    <slot name="modals" />
+  </body>
+</html>
