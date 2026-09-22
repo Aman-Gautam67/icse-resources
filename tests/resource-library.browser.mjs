@@ -173,6 +173,7 @@ try {
   await expect(page.getByText('Trying Server 1...')).toBeVisible();
   await expect(page.getByRole('button', { name: /Switch to Server 2|Try Server 2/i })).toBeVisible();
   await expect(page.getByText(/Google Drive|drive\.google\.com|Internet Archive|archive\.org/i)).toHaveCount(0);
+  expect(context.pages().length).toBe(1);
   expect(errors).toEqual([]);
   console.log('PASS: class placeholders, subject history/deep links, complete category expansion, search/filter/reset, responsive overflow, mobile menu, global search, reduced motion, and no browser errors.');
 } finally {

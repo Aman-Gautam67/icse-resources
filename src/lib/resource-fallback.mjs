@@ -86,6 +86,24 @@ export function createResourceHandler(files, check = reachable) {
           if (!allowedHost(destUrl, 'archive') && !allowedHost(destUrl, 'drive')) {
             return new Response('Invalid resource destination.', { status: 500 });
           }
+          if (mode === 'download' && (destUrl.hostname === 'archive.org' || destUrl.hostname.endsWith('.archive.org'))) {
+            try {
+              const archiveRes = await fetch(cached.destination);
+              if (archiveRes.ok) {
+                const filename = file?.name || 'resource.pdf';
+                return new Response(archiveRes.body, {
+                  status: 200,
+                  headers: {
+                    'Content-Type': archiveRes.headers.get('content-type') || 'application/pdf',
+                    'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+                    'Cache-Control': 'public, max-age=86400',
+                  },
+                });
+              }
+            } catch {
+              // fallback to 302 redirect
+            }
+          }
         } catch {
           return new Response('Invalid resource destination.', { status: 500 });
         }

@@ -13,16 +13,24 @@ type DownloadStep = 'trying_1' | 'prompt_2' | 'trying_2' | 'started_2';
 
 function triggerBrowserDownload(url: string) {
   if (!url) return;
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => {
-    if (link.parentNode) link.parentNode.removeChild(link);
-  }, 1000);
+  // Trigger download directly via a hidden iframe so the browser downloads the file without opening a new tab
+  let iframe = document.getElementById('hidden-download-frame') as HTMLIFrameElement;
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'hidden-download-frame';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
+    iframe.style.opacity = '0';
+    iframe.style.border = 'none';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.tabIndex = -1;
+    document.body.appendChild(iframe);
+  }
+  iframe.src = url;
 }
 
 export default function DownloadModal({ file, onClose }: DownloadModalProps) {
@@ -35,21 +43,21 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
   const startServer1 = useCallback(() => {
     if (!file) return;
     setStep('trying_1');
-    const s1Url = resourceUrl(file, 'download', '1') || driveUrl(file.id, 'download');
+    const s1Url = driveUrl(file.id, 'download');
     triggerBrowserDownload(s1Url);
 
     if (timerRef.current) clearTimeout(timerRef.current);
     // If not completed or if Server 1 times out/fails, prompt user for Server 2
     timerRef.current = setTimeout(() => {
       setStep('prompt_2');
-    }, 3800);
+    }, 4500);
   }, [file]);
 
   const startServer2 = useCallback(() => {
     if (!file) return;
     setStep('trying_2');
     if (timerRef.current) clearTimeout(timerRef.current);
-    const s2Url = safeArchiveUrl(file.archiveUrl) || resourceUrl(file, 'download', '2');
+    const s2Url = resourceUrl(file, 'download', '2') || safeArchiveUrl(file.archiveUrl) || driveUrl(file.id, 'download');
     triggerBrowserDownload(s2Url);
 
     timerRef.current = setTimeout(() => {
