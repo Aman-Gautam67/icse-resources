@@ -68,13 +68,8 @@ try {
   await papers.getByRole('button', { name: /Show more/ }).click();
   await expect(papers.locator('.library-files .library-file')).toHaveCount(23);
   await expect(papers.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(0);
-  const solutions = page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Paper Solutions', exact: true }) });
-  await solutions.locator('summary').click();
-  for (let i = 0; i < 2; i++) await solutions.getByRole('button', { name: /Show more/ }).click();
-  await expect(solutions.locator('.library-files .library-file')).toHaveCount(30);
-  await expect(solutions.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(30);
-  await solutions.getByRole('button', { name: 'Show less' }).click();
-  await solutions.locator('summary').click();
+  await expect(page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Paper Solutions', exact: true }) })).toHaveCount(0);
+  await expect(page.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(0);
   await papers.getByRole('button', { name: 'Show less' }).click();
   await papers.locator('summary').click();
   await page.evaluate(() => window.scrollTo(0, 0));
