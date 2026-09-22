@@ -65,7 +65,6 @@ test('Tutorial Modal: Component contains next, skip, and update highlights', () 
 
   // Highlights updates requested by user
   assert.match(tutorialCode, /6,500\+/i, 'Must highlight 6,500+ files');
-  assert.match(tutorialCode, /Zero Pop-Up Tabs|download/i, 'Must highlight direct download');
   assert.match(tutorialCode, /Ctrl \+ K|Spotlight Search/i, 'Must highlight search');
   assert.match(tutorialCode, /Organized Navigation|closed by default/i, 'Must highlight collapsed folders');
 });

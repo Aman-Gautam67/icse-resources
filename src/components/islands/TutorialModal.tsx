@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Sparkles,
-  Download,
   Search,
   FolderOpen,
   ArrowRight,
   ArrowLeft,
   Check,
   X,
-  ShieldCheck,
   Zap,
   BookOpen
 } from 'lucide-react';
@@ -47,24 +45,6 @@ const SLIDES: TutorialSlide[] = [
         icon: <Zap className="h-4 w-4 text-primary shrink-0" />,
         title: "Class 10 & 12 Materials",
         text: "Quickly toggle between Class 10 and Class 12 study spaces with syllabus alignment."
-      }
-    ]
-  },
-  {
-    badge: "Seamless Downloads",
-    title: "Direct Downloads with Zero Pop-Up Tabs",
-    description: "No more unwanted blank tabs. Clicking Download starts your file download immediately inside your browser's download manager.",
-    icon: <Download className="h-6 w-6 text-primary" />,
-    highlights: [
-      {
-        icon: <ShieldCheck className="h-4 w-4 text-primary shrink-0" />,
-        title: "Dual Server Failover",
-        text: "Automated failover between Server 1 and Server 2 if any link experiences network traffic."
-      },
-      {
-        icon: <Check className="h-4 w-4 text-primary shrink-0" />,
-        title: "Hidden Direct Mirroring",
-        text: "Download sources are cleanly routed in the background with zero pop-up disruption."
       }
     ]
   },
