@@ -23,19 +23,23 @@ export function collectLibraryFiles(node: FileNode, parents: string[] = []): Lib
   return (node.children || []).flatMap(child => collectLibraryFiles(child, [...parents, node.name || '']));
 }
 
-function buildSubcategories(folder: FileNode, parentPaths: string[]): LibraryCategory[] {
-  const subFolders = (folder.children || []).filter(c => c?.type === 'folder');
+function buildSubcategories(folder: FileNode, parentPaths: string[] = []): LibraryCategory[] {
+  const subFolders = (folder.children || []).filter(c => c?.type === 'folder' && !/^sample papers?$/i.test(c.name || ''));
+  const currentPath = folder.name ? [...parentPaths, folder.name] : parentPaths;
   return subFolders.map(sub => {
-    const subPath = [...parentPaths, sub.name || ''];
-    const subFiles = collectLibraryFiles(sub, parentPaths);
-    const nestedSubs = buildSubcategories(sub, subPath);
+    const allSubFiles = collectLibraryFiles(sub, currentPath);
+    const subFiles = allSubFiles.filter(f => {
+      const folders = f.path.split('/').map(p => p.trim());
+      return !folders.some(p => /^sample papers?$/i.test(p));
+    });
+    const nestedSubs = buildSubcategories(sub, currentPath);
     return {
       name: sub.name || '',
       files: subFiles,
       count: subFiles.length,
       subcategories: nestedSubs.length ? nestedSubs : undefined,
     };
-  });
+  }).filter(sub => sub.count > 0);
 }
 
 export function getLibraryCategories(node: FileNode): LibraryCategory[] {
@@ -44,8 +48,8 @@ export function getLibraryCategories(node: FileNode): LibraryCategory[] {
 
   if (node.name === 'PYQ Prelims') {
     return children.filter(c => c?.type === 'folder').map(yearFolder => {
-      const yearFiles = collectLibraryFiles(yearFolder, [yearFolder.name || '']);
-      const subcategories = buildSubcategories(yearFolder, [yearFolder.name || '']);
+      const yearFiles = collectLibraryFiles(yearFolder);
+      const subcategories = buildSubcategories(yearFolder, []);
       return {
         name: yearFolder.name || '',
         files: yearFiles,
@@ -74,15 +78,13 @@ export function getLibraryCategories(node: FileNode): LibraryCategory[] {
       } else remaining.push(file);
     }
     if (remaining.length) {
-      const subFolders = (child.children || []).filter(c => c?.type === 'folder' && !/^sample papers?$/i.test(c.name));
-      let subcategories: LibraryCategory[] | undefined = undefined;
-      if (subFolders.length > 0) {
-        subcategories = subFolders.map(sub => {
-          const subFiles = remaining.filter(f => f.path.includes(sub.name));
-          return { name: sub.name, files: subFiles, count: subFiles.length };
-        }).filter(sub => sub.count > 0);
-      }
-      categories.push({ name: child.name, files: remaining, count: remaining.length, subcategories: subcategories && subcategories.length > 0 ? subcategories : undefined });
+      const subcategories = buildSubcategories(child, [node.name || '']);
+      categories.push({
+        name: child.name,
+        files: remaining,
+        count: remaining.length,
+        subcategories: subcategories.length > 0 ? subcategories : undefined,
+      });
     }
   }
   if (samplePapers.length) categories.push({ name: 'Sample Papers', files: samplePapers, count: samplePapers.length });
