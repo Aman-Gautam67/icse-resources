@@ -4844,34 +4844,46 @@
             "type": "folder",
             "children": [
               {
-                "name": "Critical Thinking Questions - Almonds.pdf",
-                "type": "file",
-                "id": "1wPUuNf_SbstIXIsyco-JPdNVoBHQwUEw",
-                "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Critical%20Thinking%20Questions%20-%20Almonds--1wPUuNf_SbstIXIsyco-JPdNVoBHQwUEw.pdf"
+                "name": "Notes",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "PW Endgame Notes - 2026.pdf",
+                    "type": "file",
+                    "id": "18A8N8nTkQTGXo0MGz9tBbMrc8zrQcWKo",
+                    "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/PW%20Endgame%20Notes%20-%202026--18A8N8nTkQTGXo0MGz9tBbMrc8zrQcWKo.pdf"
+                  }
+                ]
               },
               {
-                "name": "Gurukul Oswal 61 Sample Papers - 2026.pdf",
-                "type": "file",
-                "id": "1BDSPCfi1QiCo9z3et8IsCbqB5bQbwDA_",
-                "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Gurukul%20Oswal%2061%20Sample%20Papers%20-%202026--1BDSPCfi1QiCo9z3et8IsCbqB5bQbwDA_.pdf"
-              },
-              {
-                "name": "Mock Test Papers.pdf",
-                "type": "file",
-                "id": "1pMZJJlg9EyUQsTetc1M4AdZmqTYTZnlY",
-                "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Mock%20Test%20Papers--1pMZJJlg9EyUQsTetc1M4AdZmqTYTZnlY.pdf"
-              },
-              {
-                "name": "PW Endgame Notes - 2026.pdf",
-                "type": "file",
-                "id": "18A8N8nTkQTGXo0MGz9tBbMrc8zrQcWKo",
-                "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/PW%20Endgame%20Notes%20-%202026--18A8N8nTkQTGXo0MGz9tBbMrc8zrQcWKo.pdf"
-              },
-              {
-                "name": "Sample Papers All In One - Educart.pdf",
-                "type": "file",
-                "id": "1qGq2nLxaBhWqqe18YnuR302_ClUZN3PJ",
-                "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Sample%20Papers%20All%20In%20One%20-%20Educart--1qGq2nLxaBhWqqe18YnuR302_ClUZN3PJ.pdf"
+                "name": "Sample papers and question banks",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "Critical Thinking Questions - Almonds.pdf",
+                    "type": "file",
+                    "id": "1wPUuNf_SbstIXIsyco-JPdNVoBHQwUEw",
+                    "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Critical%20Thinking%20Questions%20-%20Almonds--1wPUuNf_SbstIXIsyco-JPdNVoBHQwUEw.pdf"
+                  },
+                  {
+                    "name": "Gurukul Oswal 61 Sample Papers - 2026.pdf",
+                    "type": "file",
+                    "id": "1BDSPCfi1QiCo9z3et8IsCbqB5bQbwDA_",
+                    "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Gurukul%20Oswal%2061%20Sample%20Papers%20-%202026--1BDSPCfi1QiCo9z3et8IsCbqB5bQbwDA_.pdf"
+                  },
+                  {
+                    "name": "Mock Test Papers.pdf",
+                    "type": "file",
+                    "id": "1pMZJJlg9EyUQsTetc1M4AdZmqTYTZnlY",
+                    "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Mock%20Test%20Papers--1pMZJJlg9EyUQsTetc1M4AdZmqTYTZnlY.pdf"
+                  },
+                  {
+                    "name": "Sample Papers All In One - Educart.pdf",
+                    "type": "file",
+                    "id": "1qGq2nLxaBhWqqe18YnuR302_ClUZN3PJ",
+                    "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-subjects-featured-books-b736d5cb38/Sample%20Papers%20All%20In%20One%20-%20Educart--1qGq2nLxaBhWqqe18YnuR302_ClUZN3PJ.pdf"
+                  }
+                ]
               }
             ]
           }
@@ -7745,7 +7757,8 @@
                       {
                         "name": "Shishuvan EVs Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1RdpcVyfwHniS917MuVeDvNrqAtx_0iKH"
+                        "id": "1RdpcVyfwHniS917MuVeDvNrqAtx_0iKH",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SHISHUVAN%202025/Shishuvan%20EVs%20Prelim%202025--1RdpcVyfwHniS917MuVeDvNrqAtx_0iKH.pdf"
                       },
                       {
                         "name": "Shishuvan Geography Prelim 2025 17-Jan-2025 14-00-39.pdf",
@@ -7756,12 +7769,14 @@
                       {
                         "name": "Shishuvan Hindi Prelim 2025 17-Jan-2025 14-16-49.pdf",
                         "type": "file",
-                        "id": "1ROzDVg_VjJvx_LCqvIKOOaVivweK5PTN"
+                        "id": "1ROzDVg_VjJvx_LCqvIKOOaVivweK5PTN",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SHISHUVAN%202025/Shishuvan%20Hindi%20Prelim%202025%2017-Jan-2025%2014-16-49--1ROzDVg_VjJvx_LCqvIKOOaVivweK5PTN.pdf"
                       },
                       {
                         "name": "Shishuvan History Prelim 2025 17-Jan-2025 14-32-38.pdf",
                         "type": "file",
-                        "id": "1RFBX66vfcXzORRdWh1FbJY8ELMLzQcxq"
+                        "id": "1RFBX66vfcXzORRdWh1FbJY8ELMLzQcxq",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SHISHUVAN%202025/Shishuvan%20History%20Prelim%202025%2017-Jan-2025%2014-32-38--1RFBX66vfcXzORRdWh1FbJY8ELMLzQcxq.pdf"
                       },
                       {
                         "name": "Shishuvan Marathi Prelim 2025 17-Jan-2025 16-20-20.pdf",
@@ -7796,7 +7811,8 @@
                       {
                         "name": "SMS Biology Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1XlOD3LhWk-bsXt_7KaiQm_HJeaFD4Fik"
+                        "id": "1XlOD3LhWk-bsXt_7KaiQm_HJeaFD4Fik",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SMS%202025/SMS%20Biology%20Prelim%202025--1XlOD3LhWk-bsXt_7KaiQm_HJeaFD4Fik.pdf"
                       },
                       {
                         "name": "SMS CA. Prelim 2025.pdf",
@@ -7831,12 +7847,14 @@
                       {
                         "name": "SMS English Literature Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1Y9Ks7oeRjzoOpdty5NhCX8uIYZGB4Q1N"
+                        "id": "1Y9Ks7oeRjzoOpdty5NhCX8uIYZGB4Q1N",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SMS%202025/SMS%20English%20Literature%20Prelim%202025--1Y9Ks7oeRjzoOpdty5NhCX8uIYZGB4Q1N.pdf"
                       },
                       {
                         "name": "SMS Geography Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1Xjy1pHoybJXsR_Ab1fU9iLyki_1XmIjL"
+                        "id": "1Xjy1pHoybJXsR_Ab1fU9iLyki_1XmIjL",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/SMS%202025/SMS%20Geography%20Prelim%202025--1Xjy1pHoybJXsR_Ab1fU9iLyki_1XmIjL.pdf"
                       },
                       {
                         "name": "SMS Hindi Prelim 2025.pdf",
@@ -7892,17 +7910,20 @@
                       {
                         "name": "ST. ANNES Chemistry  Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1MCzcU0AyWDIjMnk4aNbD3vZJxNumsiqS"
+                        "id": "1MCzcU0AyWDIjMnk4aNbD3vZJxNumsiqS",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/ST%20ANNE'S%202025/ST.%20ANNES%20Chemistry%20%20Prelim%202025--1MCzcU0AyWDIjMnk4aNbD3vZJxNumsiqS.pdf"
                       },
                       {
                         "name": "ST. ANNES Economics  Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1M7uWziqlRJ8HCcBdHYy3dV31vIvvBeQN"
+                        "id": "1M7uWziqlRJ8HCcBdHYy3dV31vIvvBeQN",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/ST%20ANNE'S%202025/ST.%20ANNES%20Economics%20%20Prelim%202025--1M7uWziqlRJ8HCcBdHYy3dV31vIvvBeQN.pdf"
                       },
                       {
                         "name": "ST. ANNES English Language Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1MVyEDB_CAcW7PoNThP3uv2vzJabQ4p1q"
+                        "id": "1MVyEDB_CAcW7PoNThP3uv2vzJabQ4p1q",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/ST%20ANNE'S%202025/ST.%20ANNES%20English%20Language%20Prelim%202025--1MVyEDB_CAcW7PoNThP3uv2vzJabQ4p1q.pdf"
                       },
                       {
                         "name": "ST. ANNES English Literature Prelim 2025.pdf",
@@ -7948,7 +7969,8 @@
                       {
                         "name": "VTS Computer Prelim 2025.pdf",
                         "type": "file",
-                        "id": "1VPAu_rvOhfGTfdnqkaUGmG6cWxvTrMdg"
+                        "id": "1VPAu_rvOhfGTfdnqkaUGmG6cWxvTrMdg",
+                        "archiveUrl": "https://archive.org/download/icse-resources-fb22e74acc-10th-pyq-pyq-prelims-e826a72f3e/2025%20Prelim%20Papers/VTS%202025/VTS%20Computer%20Prelim%202025--1VPAu_rvOhfGTfdnqkaUGmG6cWxvTrMdg.pdf"
                       },
                       {
                         "name": "VTS CS Prelim 2025.pdf",

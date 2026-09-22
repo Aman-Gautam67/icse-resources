@@ -20,13 +20,20 @@ const subjects: LibrarySubject[] = getSubjectSummary(materials).map(subject => {
   };
 });
 const featured = (materials.children || []).filter(child => child.type === 'file').flatMap(child => collectLibraryFiles(child));
-if (featured.length) subjects.push({
-  name: 'Featured books',
-  slug: 'featured',
-  description: 'Question banks and handbooks covering multiple Class 10 subjects.',
-  categories: [{ name: 'Question banks & handbooks', files: featured, count: featured.length }],
-  count: featured.length,
-});
+if (featured.length) {
+  const notesFiles = featured.filter(f => /pw endgame/i.test(f.name));
+  const sampleFiles = featured.filter(f => !/pw endgame/i.test(f.name));
+  const categories: LibraryCategory[] = [];
+  if (notesFiles.length) categories.push({ name: 'Notes', files: notesFiles, count: notesFiles.length });
+  if (sampleFiles.length) categories.push({ name: 'Sample papers and question banks', files: sampleFiles, count: sampleFiles.length });
+  subjects.push({
+    name: 'Featured books',
+    slug: 'featured',
+    description: 'Question banks and handbooks covering multiple Class 10 subjects.',
+    categories,
+    count: featured.length,
+  });
+}
 const totalCount = subjects.reduce((sum, subject) => sum + subject.count, 0);
 ---
 
