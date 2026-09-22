@@ -9,7 +9,7 @@ export interface DownloadModalProps {
   onClose: () => void;
 }
 
-type DownloadStep = 'trying_1' | 'prompt_2' | 'trying_2' | 'started_2';
+type DownloadStep = 'trying_1' | 'started_1' | 'prompt_2' | 'trying_2' | 'started_2';
 
 function triggerBrowserDownload(url: string) {
   if (!url) return;
@@ -47,10 +47,10 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
     triggerBrowserDownload(s1Url);
 
     if (timerRef.current) clearTimeout(timerRef.current);
-    // If not completed or if Server 1 times out/fails, prompt user for Server 2
+    // After brief connection handoff, show started status with optional Server 2 failover
     timerRef.current = setTimeout(() => {
-      setStep('prompt_2');
-    }, 4500);
+      setStep('started_1');
+    }, 1800);
   }, [file]);
 
   const startServer2 = useCallback(() => {
@@ -62,7 +62,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
 
     timerRef.current = setTimeout(() => {
       setStep('started_2');
-    }, 1500);
+    }, 1800);
   }, [file]);
 
   useEffect(() => {
@@ -139,20 +139,68 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
               <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-foreground">Trying Server 1...</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Contacting Server 1 to start your download. If your download doesn't begin automatically within a few seconds, you can switch to Server 2.
+                Contacting Server 1 to start your download. Your download should begin automatically.
               </p>
             </div>
             {hasServer2 && (
               <div className="text-center pt-1">
                 <button
                   type="button"
-                  onClick={() => setStep('prompt_2')}
-                  className="text-xs text-primary hover:underline font-medium"
+                  onClick={startServer2}
+                  className="text-xs text-primary hover:underline font-medium cursor-pointer"
                 >
-                  Server 1 not responding? Switch to Server 2
+                  Server 1 slow? Switch to Server 2
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {step === 'started_1' && (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center text-center p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 gap-2">
+              <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-foreground">
+                Download Started from Server 1
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Your file has been requested from Server 1. Check your browser's download manager or notifications.
+              </p>
+            </div>
+
+            {hasServer2 && (
+              <div className="p-3 rounded-xl bg-accent/30 border border-border/60 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-foreground">File didn't download?</p>
+                  <p className="text-[11px] text-muted-foreground">Try Server 2 for an alternate connection</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={startServer2}
+                  className="px-3 py-1.5 rounded-lg border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary font-medium text-xs transition-colors shrink-0 cursor-pointer"
+                >
+                  Try Server 2
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={startServer1}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent text-xs font-medium transition-colors cursor-pointer"
+              >
+                <RefreshCw size={12} aria-hidden="true" />
+                <span>Re-download</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 inline-flex items-center justify-center py-2 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         )}
 
@@ -161,12 +209,12 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
             <div className="flex flex-col items-center text-center p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 gap-2">
               <AlertCircle className="h-6 w-6 text-amber-500" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-foreground">
-                Server 1 failed to respond or download
+                Download taking longer than expected?
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {hasServer2
-                  ? 'Server 1 may be busy, rate-limited, or blocked. Would you like to try Server 2 for an alternate connection?'
-                  : 'Server 1 may be experiencing high traffic. Server 2 is currently syncing for this file. Would you like to retry Server 1?'}
+                  ? 'If your download did not start automatically from Server 1, you can switch to Server 2.'
+                  : 'Server 1 might be busy. Would you like to retry the download?'}
               </p>
             </div>
             <div className="space-y-2 pt-1">
@@ -175,7 +223,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
                   <button
                     type="button"
                     onClick={startServer2}
-                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm active:scale-[0.99]"
+                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
                   >
                     <Download size={16} aria-hidden="true" />
                     <span>Try Server 2</span>
@@ -183,7 +231,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
                   <button
                     type="button"
                     onClick={startServer1}
-                    className="inline-flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent font-medium text-xs transition-colors"
+                    className="inline-flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent font-medium text-xs transition-colors cursor-pointer"
                   >
                     <RefreshCw size={13} aria-hidden="true" />
                     <span>Retry Server 1</span>
@@ -193,7 +241,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
                 <button
                   type="button"
                   onClick={startServer1}
-                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm"
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
                 >
                   <RefreshCw size={15} aria-hidden="true" />
                   <span>Retry Server 1</span>
@@ -220,17 +268,17 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
             <div className="flex flex-col items-center text-center p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 gap-2">
               <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-foreground">
-                Download started from Server 2
+                Download Started from Server 2
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Your file has been dispatched from Server 2. Check your browser's download manager.
+                Your file has been dispatched from Server 2. Check your browser's download manager or notifications.
               </p>
             </div>
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={startServer2}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent text-xs font-medium transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent text-xs font-medium transition-colors cursor-pointer"
               >
                 <RefreshCw size={12} aria-hidden="true" />
                 <span>Re-download</span>
@@ -238,7 +286,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 inline-flex items-center justify-center py-2 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm"
+                className="flex-1 inline-flex items-center justify-center py-2 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
               >
                 Done
               </button>
