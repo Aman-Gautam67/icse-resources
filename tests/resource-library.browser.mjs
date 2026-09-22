@@ -28,8 +28,7 @@ async function ready() { await expect(page.locator('.library-load-status')).toHa
 async function noOverflow() { expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); }
 try {
   await page.goto(`${base}/`);
-  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(2);
-  await expect(page.locator('[data-class-link="9"], [data-class-link="11"]')).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Choose your class' }).getByRole('link')).toHaveCount(4);
   await expect(page.getByRole('link', { name: /ICSE.*CLASS.*10/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /ISC.*CLASS.*12/ })).toBeVisible();
   await expect(page.locator('#site-header, #app-modals-root, #resource-search')).toHaveCount(0);
@@ -46,22 +45,22 @@ try {
   await page.getByRole('navigation', { name: 'Class 10 subjects' }).getByRole('link', { name: /Physics/ }).click();
   await expect(page.locator('#subject-title')).toContainText('Physics');
   const guides = page.locator('.library-category').first();
-  await expect(guides.locator('.library-files a')).toHaveCount(3);
+  await expect(guides.locator('.library-files .library-file')).toHaveCount(3);
   expect(await guides.locator('.library-fade-preview').evaluate(element => getComputedStyle(element).filter)).toContain('blur');
   await guides.getByRole('button', { name: /Show more/ }).click();
-  await expect(guides.locator('.library-files a')).toHaveCount(15);
+  await expect(guides.locator('.library-files .library-file')).toHaveCount(15);
   await guides.getByRole('button', { name: 'Show less' }).click();
-  await expect(guides.locator('.library-files a')).toHaveCount(3);
+  await expect(guides.locator('.library-files .library-file')).toHaveCount(3);
   const papers = page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Papers', exact: true }) });
   await papers.locator('summary').click();
-  await expect(papers.locator('.library-files a')).toHaveCount(3);
+  await expect(papers.locator('.library-files .library-file')).toHaveCount(3);
   await papers.getByRole('button', { name: /Show more/ }).click();
-  await expect(papers.locator('.library-files a')).toHaveCount(23);
+  await expect(papers.locator('.library-files .library-file')).toHaveCount(23);
   await expect(papers.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(0);
   const solutions = page.locator('.library-category').filter({ has: page.getByRole('heading', { name: 'Sample Paper Solutions', exact: true }) });
   await solutions.locator('summary').click();
   for (let i = 0; i < 2; i++) await solutions.getByRole('button', { name: /Show more/ }).click();
-  await expect(solutions.locator('.library-files a')).toHaveCount(30);
+  await expect(solutions.locator('.library-files .library-file')).toHaveCount(30);
   await expect(solutions.locator('.library-file-meta').filter({ hasText: 'Solutions View' })).toHaveCount(30);
   await solutions.getByRole('button', { name: 'Show less' }).click();
   await solutions.locator('summary').click();
@@ -83,7 +82,7 @@ try {
   await page.getByLabel('Subject', { exact: true }).selectOption('physics');
   await expect(page.locator('.library-results [role="status"]')).toContainText('54 results');
   await page.getByRole('button', { name: 'Back to subjects' }).click();
-  for (const grade of [12]) {
+  for (const grade of [12, 11, 9]) {
     await page.locator(`[data-class-link="${grade}"]`).click();
     await expect(page.getByRole('heading', { name: `Class ${grade} resources are on the way.` })).toBeVisible();
     await expect(page.locator(`[data-class-link="${grade}"]`)).toHaveAttribute('aria-current', 'page');
@@ -141,7 +140,7 @@ try {
   await page.route('**/data/resource-catalog.json', route => route.abort());
   await page.goto(`${base}/study-materials`);
   await expect(page.getByRole('status')).toContainText('full library couldn’t load');
-  await expect(page.locator('.library-category').first().locator('.library-files a')).toHaveCount(3);
+  await expect(page.locator('.library-category').first().locator('.library-files .library-file')).toHaveCount(3);
   await page.unroute('**/data/resource-catalog.json');
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
   await ready();
@@ -149,7 +148,7 @@ try {
   const plainPage = await plainContext.newPage();
   await plainPage.goto(`${base}/study-materials`);
   await plainPage.getByRole('link', { name: 'Browse all Class 10 resources' }).click();
-  await expect(plainPage.locator('.file-list a')).toHaveCount(flattenCatalog(expectedMaterials).length);
+  await expect(plainPage.locator('.file-list li')).toHaveCount(flattenCatalog(expectedMaterials).length);
   await plainContext.close();
   // A newly discovered subject in another class needs no frontend code change.
   await page.route('**/data/resource-catalog.json', route => route.fulfill({ json: { version: 1, classes: { '12': {
