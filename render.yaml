@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: icse-cluster-uploader
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: "node -e 'console.log(\"Build complete\")'"
+    startCommand: "node cloud-worker/server.mjs"
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: SYNC_SHARD
+        value: "1"
+      - key: SYNC_TOTAL_SHARDS
+        value: "2"
+      - key: ARCHIVE_PREFIX
+        value: "icse-resources-fb22e74acc"
+      - key: ARCHIVE_ACCESS_KEY
+        sync: false
+      - key: ARCHIVE_SECRET_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false

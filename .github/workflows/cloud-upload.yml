@@ -1,0 +1,70 @@
+name: Cloud Archive Uploader
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: 'Shard index (1-based)'
+        required: false
+        default: '1'
+      total_shards:
+        description: 'Total shards'
+        required: false
+        default: '2'
+      duration_minutes:
+        description: 'Max duration in minutes'
+        required: false
+        default: '330'
+  schedule:
+    # Run every 6 hours automatically to continue uploading
+    - cron: '0 */6 * * *'
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Cloud Upload Worker
+        env:
+          ARCHIVE_ACCESS_KEY: ${{ secrets.ARCHIVE_ACCESS_KEY }}
+          ARCHIVE_SECRET_KEY: ${{ secrets.ARCHIVE_SECRET_KEY }}
+          ARCHIVE_PREFIX: ${{ secrets.ARCHIVE_PREFIX }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          SYNC_SHARD: ${{ github.event.inputs.shard || '1' }}
+          SYNC_TOTAL_SHARDS: ${{ github.event.inputs.total_shards || '2' }}
+          RUN_DURATION_MINUTES: ${{ github.event.inputs.duration_minutes || '330' }}
+          AUTO_EXIT_WHEN_DONE: 'true'
+          MAX_CONCURRENT: '3'
+          PORT: '10000'
+        run: |
+          node cloud-worker/server.mjs
+
+      - name: Commit and Push Updated Catalog
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/resource-catalog.json public/data/search-index.json
+          if git status --porcelain | grep -q .; then
+            git commit -m "chore(catalog): auto-sync verified archive mirrors [skip ci]"
+            git pull --rebase origin main || true
+            git push origin main || git push origin HEAD
+          else
+            echo "No catalog changes to commit."
+          fi

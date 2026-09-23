@@ -9,7 +9,7 @@
 A lightning-fast, open educational web portal providing comprehensive and organized **study resources** for **ICSE Class 10** students. The platform curates over **6,100+ educational files** across 11 core academic subjects—including chapter revision notes, textbook solutions, council specimen papers, and an extensive repository of school prelim papers.
 
 <div align="center">
-  <a href="https://class10icse.pages.dev/">Live Website</a> &nbsp;|&nbsp;
+  <a href="https://icse-resources.pages.dev/">Live Website</a> &nbsp;|&nbsp;
   <a href="#features">Features</a> &nbsp;|&nbsp;
   <a href="#architecture">Architecture</a> &nbsp;|&nbsp;
   <a href="#tech-stack">Tech Stack</a> &nbsp;|&nbsp;
