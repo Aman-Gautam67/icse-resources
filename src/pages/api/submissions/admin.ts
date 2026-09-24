@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
   const status = url.searchParams.get('status') || 'pending';
   if (!['pending', 'approved', 'rejected', 'all'].includes(status)) return noStoreJson({ error: 'Invalid status.' }, 400);
   try {
-    const result = await db.prepare('SELECT id, grade, subject, resource_type AS resourceType, discord_id AS discord, reddit_id AS reddit, file_name AS fileName, content_type AS contentType, file_size AS fileSize, status, submitted_at AS submittedAt, reviewed_at AS reviewedAt, rejection_reason AS rejectionReason FROM student_submissions WHERE (? = \'all\' OR status = ?) ORDER BY submitted_at DESC LIMIT 200').bind(status, status).all();
+    const result = await db.prepare('SELECT id, grade, subject, resource_type AS resourceType, discord_id AS discord, reddit_id AS reddit, public_ids_opt_in AS publicIdsOptIn, file_name AS fileName, content_type AS contentType, file_size AS fileSize, status, submitted_at AS submittedAt, reviewed_at AS reviewedAt, rejection_reason AS rejectionReason, archive_state AS archiveState, archive_url AS archiveUrl, archive_error AS archiveError FROM student_submissions WHERE (? = \'all\' OR status = ?) ORDER BY submitted_at DESC LIMIT 200').bind(status, status).all();
     return noStoreJson({ submissions: result.results || [] });
   } catch { return noStoreJson({ error: 'Submission list unavailable.' }, 503); }
 };
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const reason = cleanText(body.reason || '', 300);
   if (typeof id !== 'string' || !idPattern.test(id) || !['approved', 'rejected'].includes(String(decision)) || reason === null) return noStoreJson({ error: 'Invalid review.' }, 400);
   try {
-    const result = await db.prepare("UPDATE student_submissions SET status = ?, reviewed_at = ?, rejection_reason = ? WHERE id = ? AND (status = 'pending' OR (status = 'approved' AND ? = 'rejected'))").bind(decision, Date.now(), decision === 'rejected' ? reason : '', id, decision).run();
+    const result = await db.prepare("UPDATE student_submissions SET status = ?, reviewed_at = ?, rejection_reason = ?, archive_state = CASE WHEN ? = 'approved' THEN 'queued' WHEN archive_state = 'archived' THEN 'archived' ELSE 'not_queued' END WHERE id = ? AND (status = 'pending' OR (status = 'approved' AND ? = 'rejected'))").bind(decision, Date.now(), decision === 'rejected' ? reason : '', decision, id, decision).run();
     if (!result.meta?.changes) return noStoreJson({ error: 'Submission was already reviewed or does not exist.' }, 409);
     return noStoreJson({ id, status: decision });
   } catch { return noStoreJson({ error: 'Review could not be saved.' }, 503); }

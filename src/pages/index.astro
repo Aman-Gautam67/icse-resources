@@ -38,6 +38,8 @@ const available = getAvailableClassesSync();
         <div class="share-layout">
           <form id="share-form" class="share-card">
             <div class="share-fields"><label>Discord ID <span>(optional)</span><input name="discord" maxlength="80" autocomplete="off" placeholder="Your Discord ID" /></label><label>Reddit ID <span>(optional)</span><input name="reddit" maxlength="80" autocomplete="off" placeholder="Your Reddit ID" /></label></div>
+            <label class="share-opt-in"><input name="publicIdsOptIn" type="checkbox" /> Show my Discord and Reddit IDs in public Archive info.txt after approval</label>
+            <p class="share-note">Unchecked IDs stay visible only to administrators. Internet Archive copies are public and may persist after removal from this site.</p>
             <fieldset><legend>Which class is this resource for?</legend><label><input type="radio" name="grade" value="10" required /> Class 10</label><label><input type="radio" name="grade" value="12" required /> Class 12</label></fieldset>
             <div class="share-fields"><label>Subject<input name="subject" type="text" maxlength="80" required placeholder="Type the subject name" /></label><label>What is this resource?<input name="resourceType" type="text" maxlength="120" required placeholder="Prelim paper, UT paper, notes…" /></label></div>
             <label>Upload image or PDF<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,application/pdf,image/jpeg,image/png,image/gif,image/webp" required /></label>
@@ -132,6 +134,8 @@ const available = getAvailableClassesSync();
   .share-card input:not([type="radio"]) { display:block; width:100%; margin-top:.45rem; padding:.7rem; border:1px solid hsl(var(--border)); border-radius:5px; background:hsl(var(--background)); color:hsl(var(--foreground)); font-size:.76rem; }
   .share-card fieldset { border:0; padding:.4rem 0; margin:0; }
   .share-card fieldset label { display:inline-flex; align-items:center; gap:.45rem; margin-right:1.3rem; }
+  .share-card .share-opt-in { display:flex; align-items:flex-start; gap:.55rem; font-weight:400; line-height:1.5; }
+  .share-card .share-opt-in input { flex:none; margin-top:.2rem; }
   .share-card button { border:1px solid hsl(var(--primary)); background:hsl(var(--primary)); color:hsl(var(--primary-foreground)); border-radius:5px; padding:.65rem .9rem; font-size:.72rem; font-weight:600; margin-top:.7rem; }
   .share-card button:disabled { opacity:.6; }
   .share-card p,.share-card li { font-size:.72rem; line-height:1.6; color:hsl(var(--muted-foreground)); }

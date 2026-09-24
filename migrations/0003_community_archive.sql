@@ -1,0 +1,11 @@
+ALTER TABLE student_submissions ADD COLUMN public_ids_opt_in INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE student_submissions ADD COLUMN archive_state TEXT NOT NULL DEFAULT 'not_queued';
+ALTER TABLE student_submissions ADD COLUMN archive_claim TEXT NOT NULL DEFAULT '';
+ALTER TABLE student_submissions ADD COLUMN archive_claimed_at INTEGER;
+ALTER TABLE student_submissions ADD COLUMN archive_retry_at INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE student_submissions ADD COLUMN archive_attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE student_submissions ADD COLUMN archive_url TEXT NOT NULL DEFAULT '';
+ALTER TABLE student_submissions ADD COLUMN archive_error TEXT NOT NULL DEFAULT '';
+ALTER TABLE student_submissions ADD COLUMN archived_at INTEGER;
+UPDATE student_submissions SET archive_state = 'queued' WHERE status = 'approved';
+CREATE INDEX IF NOT EXISTS student_submissions_archive_queue ON student_submissions(archive_state, archive_retry_at, submitted_at);

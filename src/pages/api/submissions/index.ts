@@ -30,6 +30,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const resourceType = cleanText(form.get('resourceType'), 120, true);
   const discord = cleanText(form.get('discord') ?? '', 80);
   const reddit = cleanText(form.get('reddit') ?? '', 80);
+  const publicIdsOptIn = form.get('publicIdsOptIn') === 'on' ? 1 : 0;
   const file = form.get('file');
   if (!['10', '12'].includes(grade) || subject === null || resourceType === null || discord === null || reddit === null || !(file instanceof File)) return noStoreJson({ error: 'Check class, subject, description and file.' }, 400);
   const fileName = safeFileName(file.name);
@@ -54,8 +55,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const key = `pending/${id}`;
   try {
     await bucket.put(key, file.stream(), { httpMetadata: { contentType } });
-    await db.prepare('INSERT INTO student_submissions (id, receipt_hash, grade, subject, resource_type, discord_id, reddit_id, file_name, content_type, file_size, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-      .bind(id, await sha256(receipt), Number(grade), subject, resourceType, discord, reddit, fileName, contentType, file.size, now).run();
+    await db.prepare('INSERT INTO student_submissions (id, receipt_hash, grade, subject, resource_type, discord_id, reddit_id, public_ids_opt_in, file_name, content_type, file_size, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(id, await sha256(receipt), Number(grade), subject, resourceType, discord, reddit, publicIdsOptIn, fileName, contentType, file.size, now).run();
     return noStoreJson({ receipt, status: 'pending', id }, 201);
   } catch {
     await bucket.delete(key).catch(() => {});

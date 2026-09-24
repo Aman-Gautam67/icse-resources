@@ -6,7 +6,9 @@ import { GET as approved } from '../src/pages/api/submissions/approved.ts';
 import { GET as publicFile } from '../src/pages/api/submissions/file.ts';
 import { GET as adminList, POST as review } from '../src/pages/api/submissions/admin.ts';
 import { GET as adminFile } from '../src/pages/api/submissions/admin-file.ts';
+import { GET as archiveQueue, POST as archiveJob } from '../src/pages/api/submissions/archive-job.ts';
 import { detectFileType } from '../src/lib/submissions.mjs';
+import { communityDestination, communityInfo, isCommunityArchiveUrl } from '../src/lib/community-archive.mjs';
 
 const base = 'https://example.test';
 const adminToken = 'x'.repeat(40);
@@ -16,15 +18,21 @@ function context() {
     if (sql.startsWith('INSERT OR IGNORE INTO student_submission_limits')) { const key = args.join(':'); if (!limits.has(key)) limits.set(key, 0); return { meta: { changes: 1 } }; }
     if (sql.startsWith('UPDATE student_submission_limits')) { const key = args.join(':'); const count = limits.get(key) || 0; if (count >= 5) return { meta: { changes: 0 } }; limits.set(key, count + 1); return { meta: { changes: 1 } }; }
     if (sql.startsWith('DELETE FROM student_submission_limits')) return { meta: { changes: 0 } };
-    if (sql.startsWith('INSERT INTO student_submissions')) { const [id, receiptHash, grade, subject, resourceType, discord, reddit, fileName, contentType, fileSize, submittedAt] = args; rows.set(id, { id, receiptHash, grade, subject, resourceType, discord, reddit, fileName, contentType, fileSize, submittedAt, status: 'pending', reviewedAt: null, rejectionReason: '' }); return { meta: { changes: 1 } }; }
-    if (sql.startsWith('UPDATE student_submissions')) { const [decision, reviewedAt, rejectionReason, id] = args; const row = rows.get(id); if (!row || row.status !== 'pending' && !(row.status === 'approved' && decision === 'rejected')) return { meta: { changes: 0 } }; Object.assign(row, { status: decision, reviewedAt, rejectionReason }); return { meta: { changes: 1 } }; }
+    if (sql.startsWith('INSERT INTO student_submissions')) { const [id, receiptHash, grade, subject, resourceType, discord, reddit, publicIdsOptIn, fileName, contentType, fileSize, submittedAt] = args; rows.set(id, { id, receiptHash, grade, subject, resourceType, discord, reddit, publicIdsOptIn, fileName, contentType, fileSize, submittedAt, status: 'pending', reviewedAt: null, rejectionReason: '', archiveState: 'not_queued' }); return { meta: { changes: 1 } }; }
+    if (sql.includes("SET status = ?")) { const [decision, reviewedAt, rejectionReason, , id] = args; const row = rows.get(id); if (!row || row.status !== 'pending' && !(row.status === 'approved' && decision === 'rejected')) return { meta: { changes: 0 } }; Object.assign(row, { status: decision, reviewedAt, rejectionReason, archiveState: decision === 'approved' ? 'queued' : row.archiveState === 'archived' ? 'archived' : 'not_queued' }); return { meta: { changes: 1 } }; }
+    if (sql.includes("SET archive_state = 'queued'")) { const row = rows.get(args[0]); if (!row || row.status !== 'approved' || row.archiveState !== 'failed') return { meta: { changes: 0 } }; Object.assign(row, { archiveState: 'queued', archiveRetryAt: 0, archiveError: '' }); return { meta: { changes: 1 } }; }
+    if (sql.includes("SET archive_state = 'uploading'")) { const [claim, claimedAt, id, now, stale] = args, row = rows.get(id); if (!row || row.status !== 'approved' || !(row.archiveState === 'queued' || row.archiveState === 'failed' && row.archiveRetryAt <= now || row.archiveState === 'uploading' && row.archiveClaimedAt < stale)) return { meta: { changes: 0 } }; Object.assign(row, { archiveState: 'uploading', archiveClaim: claim, archiveClaimedAt: claimedAt, archiveAttempts: (row.archiveAttempts || 0) + 1, archiveError: '' }); return { meta: { changes: 1 } }; }
+    if (sql.includes("SET archive_state = 'archived'")) { const [url, archivedAt, id, claim] = args, row = rows.get(id); if (!row || row.status !== 'approved' || row.archiveState !== 'uploading' || row.archiveClaim !== claim) return { meta: { changes: 0 } }; Object.assign(row, { archiveState: 'archived', archiveUrl: url, archivedAt, archiveClaim: '' }); return { meta: { changes: 1 } }; }
+    if (sql.includes("SET archive_state = 'failed'")) { const [error, archiveRetryAt, id, claim] = args, row = rows.get(id); if (!row || row.status !== 'approved' || row.archiveState !== 'uploading' || row.archiveClaim !== claim) return { meta: { changes: 0 } }; Object.assign(row, { archiveState: 'failed', archiveError: error, archiveRetryAt, archiveClaim: '' }); return { meta: { changes: 1 } }; }
     throw Error(`Unexpected SQL: ${sql}`);
   }, async first() {
     if (sql.includes('WHERE receipt_hash = ?')) { const row = [...rows.values()].find(row => row.receiptHash === args[0]); return row ? { id: row.id, grade: row.grade, subject: row.subject, resourceType: row.resourceType, fileName: row.fileName, status: row.status, submittedAt: row.submittedAt, reviewedAt: row.reviewedAt, rejectionReason: row.rejectionReason } : null; }
+    if (sql.includes('archive_claim = ?')) { const row = rows.get(args[0]); return row?.archiveClaim === args[1] ? row : null; }
     if (sql.includes("status = 'approved'")) { const row = rows.get(args[0]); return row?.status === 'approved' ? row : null; }
     if (sql.includes('WHERE id = ?')) return rows.get(args[0]) || null;
     throw Error(`Unexpected SQL: ${sql}`);
   }, async all() {
+    if (sql.startsWith('SELECT id FROM student_submissions')) { const [now, stale] = args; return { results: [...rows.values()].filter(row => row.status === 'approved' && (row.archiveState === 'queued' || row.archiveState === 'failed' && row.archiveRetryAt <= now || row.archiveState === 'uploading' && row.archiveClaimedAt < stale)).map(row => ({ id: row.id })) }; }
     if (sql.includes("status = 'approved'")) return { results: [...rows.values()].filter(row => row.status === 'approved' && (args[0] === null || row.grade === args[0])) };
     if (sql.includes('student_submissions WHERE')) return { results: [...rows.values()].filter(row => args[0] === 'all' || row.status === args[0]) };
     throw Error(`Unexpected SQL: ${sql}`);
@@ -87,4 +95,53 @@ test('Discord and Reddit IDs are optional', async () => {
   const { locals } = context();
   const response = await upload({ request: formRequest(pdf(), { discord: undefined, reddit: undefined }), locals });
   assert.equal(response.status, 201);
+});
+
+test('Archive metadata keeps student IDs private unless explicitly opted in', async () => {
+  const { locals, rows } = context();
+  const submitted = await upload({ request: formRequest(pdf(), { discord: 'my-discord', reddit: 'my-reddit' }), locals });
+  const { id } = await submitted.json();
+  const row = rows.get(id);
+  assert.equal(row.publicIdsOptIn, 0);
+  row.reviewedAt = Date.now();
+  const destination = communityDestination('school', row);
+  assert.equal(destination.key, `community-uploads/${id}/paper.pdf`);
+  assert.equal(destination.infoKey, `community-uploads/${id}/info.txt`);
+  const privateInfo = communityInfo(row, destination);
+  assert.match(privateInfo, /Review ID:/);
+  assert.match(privateInfo, /Contributor: anonymous/);
+  assert.doesNotMatch(privateInfo, /my-discord|my-reddit/);
+  const optedIn = await upload({ request: formRequest(pdf(), { discord: 'my-discord', reddit: 'my-reddit', publicIdsOptIn: 'on' }), locals });
+  const optedInRow = rows.get((await optedIn.json()).id);
+  optedInRow.reviewedAt = Date.now();
+  const publicInfo = communityInfo(optedInRow, communityDestination('school', optedInRow));
+  assert.match(publicInfo, /Discord ID: my-discord/);
+  assert.match(publicInfo, /Reddit ID: my-reddit/);
+  assert.doesNotMatch(publicInfo, /receipt|203\.0\.113\.5/i);
+});
+
+test('approved resources queue for Archive and require a valid claim to complete', async () => {
+  const { locals, rows } = context();
+  const submitted = await upload({ request: formRequest(pdf()), locals });
+  const { id } = await submitted.json();
+  const headers = { Authorization: `Bearer ${adminToken}` };
+  const endpoint = '/api/submissions/archive-job';
+  const job = (action, extra = {}, auth = headers) => archiveJob({ request: route(endpoint, { method: 'POST', headers: auth, body: JSON.stringify({ id, action, ...extra }) }), locals });
+  const queue = auth => archiveQueue({ request: route(endpoint, { headers: auth }), locals });
+  assert.equal((await queue()).status, 401);
+  assert.deepEqual((await (await queue(headers)).json()).ids, []);
+  assert.equal((await job('claim')).status, 409);
+  assert.equal((await review({ request: route('/api/submissions/admin', { method: 'POST', headers, body: JSON.stringify({ id, decision: 'approved' }) }), locals })).status, 200);
+  assert.deepEqual((await (await queue(headers)).json()).ids, [id]);
+  const claimed = await (await job('claim')).json();
+  assert.equal(claimed.submission.id, id);
+  assert.equal(claimed.submission.publicIdsOptIn, 0);
+  assert.deepEqual((await (await queue(headers)).json()).ids, []);
+  assert.equal((await job('complete', { claim: crypto.randomUUID(), url: communityDestination('school', claimed.submission).fileUrl })).status, 409);
+  assert.equal((await job('complete', { claim: claimed.claim, url: 'https://evil.test/file.pdf' })).status, 400);
+  const url = communityDestination('school', claimed.submission).fileUrl;
+  assert.equal(isCommunityArchiveUrl(url, id), true);
+  assert.equal((await job('complete', { claim: claimed.claim, url })).status, 200);
+  assert.equal(rows.get(id).archiveState, 'archived');
+  assert.deepEqual((await (await queue(headers)).json()).ids, []);
 });
