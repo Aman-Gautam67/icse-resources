@@ -61,7 +61,7 @@ export async function resolveResource(file, mode = 'view', check = reachable, se
 
 export function createResourceHandler(files, check = reachable) {
   const safeFiles = Array.isArray(files) ? files : [];
-  const mirrored = new Map(safeFiles.filter(file => safeArchiveUrl(file?.archiveUrl)).map(file => [file.id, file]));
+  const mirrored = new Map(safeFiles.filter(file => file?.id).map(file => [file.id, file]));
   const cache = new Map();
   return async url => {
     try {
@@ -73,6 +73,9 @@ export function createResourceHandler(files, check = reachable) {
       if (!file) return new Response('Resource not found.', { status: 404 });
       const server = url.searchParams.get('server') === '2' ? '2' : '1';
       const key = `${id}:${mode}:${server}`;
+      if (!safeArchiveUrl(file.archiveUrl)) {
+        return new Response(null, { status: 302, headers: { Location: driveUrl(file.id, mode), 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } });
+      }
       let cached = cache.get(key);
       if (!cached || cached.expires <= Date.now()) {
         const destination = await resolveResource(file, mode, check, server);
@@ -96,7 +99,7 @@ export function createResourceHandler(files, check = reachable) {
                   headers: {
                     'Content-Type': archiveRes.headers.get('content-type') || 'application/pdf',
                     'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-                    'Cache-Control': 'public, max-age=86400',
+                    'Cache-Control': 'no-store',
                   },
                 });
               }

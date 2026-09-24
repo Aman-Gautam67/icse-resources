@@ -83,5 +83,29 @@ const canonicalUrl = new URL(currentPath, Astro.site || "https://class10icse.pag
     <!-- Shared dialogs power navigation and search on every page. -->
     {!selectionOnly && <AppModals client:load />}
     <slot name="modals" />
+    <script is:inline>
+    (() => {
+      try {
+        if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true) {
+          document.cookie = 'icse_visitor=; Path=/; Max-Age=0; SameSite=Lax; Secure';
+          return;
+        }
+        const key = 'icse_anonymous_visitor_v1';
+        let id = localStorage.getItem(key);
+        if (!/^[a-f0-9]{32}$/.test(id || '')) {
+          id = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+          localStorage.setItem(key, id);
+        }
+        document.cookie = `icse_visitor=${id}; Path=/; Max-Age=7776000; SameSite=Lax; Secure`;
+        fetch('/api/analytics/visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: location.pathname }),
+          keepalive: true,
+          credentials: 'same-origin',
+        }).catch(() => {});
+      } catch (_) {}
+    })();
+    </script>
   </body>
 </html>

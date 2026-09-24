@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
+import { resourceUrl } from '../../lib/resource-link.mjs';
 
 export interface FileNode {
   name: string;
@@ -172,7 +173,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   if (!open) return null;
 
-  const downloadUrl = (id: string) => `https://drive.google.com/uc?export=download&id=${id}`;
+  const downloadUrl = (id: string) => resourceUrl({ id }, 'download');
   const previewUrl = (id: string) => `https://drive.google.com/file/d/${id}/preview`;
 
   const getSlideClass = () => {

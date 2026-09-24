@@ -18,6 +18,8 @@ const available = getAvailableClassesSync();
     </header>
 
     <section class="entry-content" aria-labelledby="class-title">
+      <div class="entry-tabs" role="tablist" aria-label="Home views"><button id="browse-tab" type="button" role="tab" aria-selected="true" aria-controls="browse-panel">Browse classes</button><button id="share-tab" type="button" role="tab" aria-selected="false" aria-controls="share-panel">Share resources</button></div>
+      <div id="browse-panel" role="tabpanel" aria-labelledby="browse-tab">
       <div class="entry-heading">
         <div><p class="entry-eyebrow"><span></span> A LITTLE DIRECTION. A LOT TO DISCOVER.</p><h1 id="class-title">Your class.<br /><span>Your starting point.</span></h1></div>
         <p class="entry-description">Choose your class to find the notes,<br class="desktop-break" /> guides, and practice papers you need for ICSE Class 10 and more.</p>
@@ -30,13 +32,118 @@ const available = getAvailableClassesSync();
         </a>)}
       </nav>
       <div class="entry-note"><span class="entry-note-line"></span><p>Explore an available class. More resources are added as the library grows.</p></div>
+      </div>
+      <div id="share-panel" role="tabpanel" aria-labelledby="share-tab" hidden>
+        <div class="entry-heading"><div><p class="entry-eyebrow"><span></span> HELP THE STUDENT LIBRARY GROW.</p><h1>Share a<br /><span>resource.</span></h1></div><p class="entry-description">Send a paper, image, or PDF for review.<br />Only approved resources appear in the library.</p></div>
+        <div class="share-layout">
+          <form id="share-form" class="share-card">
+            <div class="share-fields"><label>Discord ID <span>(optional)</span><input name="discord" maxlength="80" autocomplete="off" placeholder="Your Discord ID" /></label><label>Reddit ID <span>(optional)</span><input name="reddit" maxlength="80" autocomplete="off" placeholder="Your Reddit ID" /></label></div>
+            <fieldset><legend>Which class is this resource for?</legend><label><input type="radio" name="grade" value="10" required /> Class 10</label><label><input type="radio" name="grade" value="12" required /> Class 12</label></fieldset>
+            <div class="share-fields"><label>Subject<input name="subject" type="text" maxlength="80" required placeholder="Type the subject name" /></label><label>What is this resource?<input name="resourceType" type="text" maxlength="120" required placeholder="Prelim paper, UT paper, notes…" /></label></div>
+            <label>Upload image or PDF<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,application/pdf,image/jpeg,image/png,image/gif,image/webp" required /></label>
+            <p class="share-note">PDF, JPEG, PNG, GIF or WebP. Maximum 20 MB. Share only files you have permission to distribute.</p>
+            <button id="share-submit" type="submit">Send for review <span aria-hidden="true">→</span></button><p id="share-message" role="status" aria-live="polite"></p>
+          </form>
+          <aside class="share-card share-status" aria-label="Review status"><p class="entry-eyebrow"><span></span> YOUR SUBMISSIONS</p><h2>Review status</h2><p>Track uploads saved in this browser. Keep your tracking code to check from another device.</p><div id="share-receipt" hidden><label for="receipt-code">Your tracking code</label><input id="receipt-code" readonly /><button id="copy-receipt" type="button">Copy code</button></div><ul id="share-status-list" aria-live="polite"></ul><form id="track-form"><label for="track-code">Have a tracking code?</label><input id="track-code" type="text" pattern="[a-f0-9]{64}" maxlength="64" autocomplete="off" placeholder="Paste code" required /><button type="submit">Check status</button></form><button id="refresh-status" type="button">Refresh status</button></aside>
+        </div>
+      </div>
     </section>
 
     <footer class="entry-footer"><span>Free to learn. Open to everyone.</span><span>CHOOSE A CLASS <span aria-hidden="true">→</span> FIND YOUR SUBJECT <span aria-hidden="true">→</span> START LEARNING</span></footer>
   </div>
 </BaseLayout>
 
+<script>
+  const browseTab = document.getElementById('browse-tab') as HTMLButtonElement;
+  const shareTab = document.getElementById('share-tab') as HTMLButtonElement;
+  const browsePanel = document.getElementById('browse-panel') as HTMLElement;
+  const sharePanel = document.getElementById('share-panel') as HTMLElement;
+  function showTab(share: boolean) {
+    browsePanel.hidden = share; sharePanel.hidden = !share;
+    browseTab.setAttribute('aria-selected', String(!share)); shareTab.setAttribute('aria-selected', String(share));
+    if (share) refreshStatus();
+  }
+  browseTab.addEventListener('click', () => showTab(false));
+  shareTab.addEventListener('click', () => showTab(true));
+  const storageKey = 'icse_submission_receipts_v1';
+  const validReceipt = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  function savedReceipts(): string[] {
+    try { const value = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(value) ? value.filter(validReceipt).slice(-30) : []; } catch { return []; }
+  }
+  function saveReceipt(receipt: string) {
+    try { localStorage.setItem(storageKey, JSON.stringify([...new Set([...savedReceipts(), receipt])].slice(-30))); } catch {}
+  }
+  const shareMessage = document.getElementById('share-message') as HTMLElement;
+  async function refreshStatus() {
+    const receipts = savedReceipts();
+    const list = document.getElementById('share-status-list') as HTMLUListElement;
+    if (!receipts.length) { list.replaceChildren(); const item = document.createElement('li'); item.textContent = 'No submissions tracked yet.'; list.append(item); return; }
+    try {
+      const response = await fetch('/api/submissions/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ receipts }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Status unavailable.');
+      if (!data.submissions.length) { list.textContent = 'No matching submissions. Check your tracking code.'; return; }
+      list.replaceChildren(...data.submissions.map((item: { fileName: string; grade: number; status: string; rejectionReason: string; id: string }) => {
+        const row = document.createElement('li'); const title = document.createElement('strong'); title.textContent = item.fileName;
+        const detail = document.createElement('span'); detail.textContent = `Class ${item.grade} · ${item.status}${item.rejectionReason ? ` · ${item.rejectionReason}` : ''}`;
+        row.append(title, detail);
+        if (item.status === 'approved') { const link = document.createElement('a'); link.href = `/api/submissions/file?id=${encodeURIComponent(item.id)}`; link.textContent = 'Download'; row.append(link); }
+        return row;
+      }));
+    } catch (error) { list.textContent = error instanceof Error ? error.message : 'Status unavailable.'; }
+  }
+  (document.getElementById('share-form') as HTMLFormElement).addEventListener('submit', async event => {
+    event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const button = document.getElementById('share-submit') as HTMLButtonElement;
+    const file = (form.elements.namedItem('file') as HTMLInputElement).files?.[0];
+    if (!file || file.size < 1 || file.size > 20 * 1024 * 1024) { shareMessage.textContent = 'Choose a non-empty file under 20 MB.'; return; }
+    button.disabled = true; shareMessage.textContent = 'Uploading…';
+    try {
+      const response = await fetch('/api/submissions', { method: 'POST', body: new FormData(form) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Upload failed.');
+      saveReceipt(data.receipt); form.reset(); shareMessage.textContent = 'Upload received. Review is pending.';
+      (document.getElementById('receipt-code') as HTMLInputElement).value = data.receipt;
+      (document.getElementById('share-receipt') as HTMLElement).hidden = false;
+      refreshStatus();
+    } catch (error) { shareMessage.textContent = error instanceof Error ? error.message : 'Upload failed.'; }
+    finally { button.disabled = false; }
+  });
+  (document.getElementById('track-form') as HTMLFormElement).addEventListener('submit', event => {
+    event.preventDefault(); const input = document.getElementById('track-code') as HTMLInputElement; const receipt = input.value.trim().toLowerCase();
+    if (!validReceipt(receipt)) return; saveReceipt(receipt); input.value = ''; refreshStatus();
+  });
+  document.getElementById('refresh-status')?.addEventListener('click', refreshStatus);
+  document.getElementById('copy-receipt')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText((document.getElementById('receipt-code') as HTMLInputElement).value); shareMessage.textContent = 'Tracking code copied.'; } catch { shareMessage.textContent = 'Select and copy the code above.'; }
+  });
+  if (location.hash === '#share') showTab(true);
+</script>
+
 <style>
+  .entry-tabs { display:flex; gap:.45rem; align-self:flex-start; border-bottom:1px solid hsl(var(--border)); margin-bottom:2rem; }
+  .entry-tabs button { padding:.65rem 1rem; font-size:.76rem; font-weight:600; color:hsl(var(--muted-foreground)); border-bottom:2px solid transparent; }
+  .entry-tabs button[aria-selected="true"] { color:hsl(var(--foreground)); border-color:hsl(var(--primary)); }
+  .entry-tabs button:focus-visible,.share-card button:focus-visible,.share-card input:focus-visible { outline:2px solid hsl(var(--primary)); outline-offset:3px; }
+  .share-layout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr); gap:1rem; }
+  .share-card { border:1px solid hsl(var(--border)); background:hsl(var(--card) / .75); border-radius:7px; padding:1.35rem; }
+  .share-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .share-card label,.share-card legend { display:block; font-size:.73rem; font-weight:600; color:hsl(var(--foreground)); margin:.7rem 0 .35rem; }
+  .share-card label span,.share-note { color:hsl(var(--muted-foreground)); font-weight:400; }
+  .share-card input:not([type="radio"]) { display:block; width:100%; margin-top:.45rem; padding:.7rem; border:1px solid hsl(var(--border)); border-radius:5px; background:hsl(var(--background)); color:hsl(var(--foreground)); font-size:.76rem; }
+  .share-card fieldset { border:0; padding:.4rem 0; margin:0; }
+  .share-card fieldset label { display:inline-flex; align-items:center; gap:.45rem; margin-right:1.3rem; }
+  .share-card button { border:1px solid hsl(var(--primary)); background:hsl(var(--primary)); color:hsl(var(--primary-foreground)); border-radius:5px; padding:.65rem .9rem; font-size:.72rem; font-weight:600; margin-top:.7rem; }
+  .share-card button:disabled { opacity:.6; }
+  .share-card p,.share-card li { font-size:.72rem; line-height:1.6; color:hsl(var(--muted-foreground)); }
+  .share-card h2 { font-size:1.5rem; font-weight:600; }
+  .share-card ul { list-style:none; padding:0; margin:1rem 0; }
+  .share-card li { display:grid; gap:.2rem; border-top:1px solid hsl(var(--border)); padding:.65rem 0; overflow-wrap:anywhere; }
+  .share-card li strong { color:hsl(var(--foreground)); font-weight:600; }
+  .share-card li a { color:hsl(var(--primary)); text-decoration:underline; }
+  .share-status { align-self:start; }
+  #share-message { min-height:1.2rem; }
+  @media (max-width:750px) { .share-layout { grid-template-columns:1fr; } }
+  @media (max-width:480px) { .share-fields { grid-template-columns:1fr; gap:0; } }
   .class-entry { max-width: 1440px; min-height: 100svh; margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 5rem); display: flex; flex-direction: column; }
   .entry-header { height: 104px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid hsl(var(--border) / .65); }
   .entry-brand { display: flex; align-items: center; gap: .8rem; font-weight: 700; font-size: 1rem; letter-spacing: -.035em; }

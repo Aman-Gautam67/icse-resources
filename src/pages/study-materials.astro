@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ClassNavigation from '../components/ClassNavigation.astro';
 import ResourceLibrary from '../components/islands/ResourceLibrary';
+import StudentSharedResources from '../components/islands/StudentSharedResources';
 import { getStudyMaterialsSync, getSubjectSummary } from '../lib/data';
 import { subjectSlug } from '../lib/resource-catalog.mjs';
 import { collectLibraryFiles, getLibraryCategories, type LibrarySubject } from '../lib/resource-library';
@@ -46,6 +47,7 @@ const previews = subjects.map(subject => ({ ...subject, categories: subject.cate
     <nav class="flex items-center gap-2 text-xs text-muted-foreground mb-5" aria-label="Breadcrumb"><a href="/" class="hover:text-foreground">Home</a><span aria-hidden="true">/</span><span class="text-foreground">Study Materials</span></nav>
     <ClassNavigation selectedClass={10} />
     <ResourceLibrary subjects={previews} client:load />
+    <StudentSharedResources client:load />
     <noscript>
       <style>.resource-library { display: none; }</style>
       <section class="mt-8 space-y-3"><h1 class="text-2xl font-bold">Class 10 Study Materials</h1><p>ISC Class 12 resources are being added. Browse all Class 10 files using the link below, or enable JavaScript for search and compact previews.</p>

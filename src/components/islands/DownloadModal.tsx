@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Download, FileText, AlertCircle, CheckCircle2, Loader2, RefreshCw, X } from 'lucide-react';
-import { resourceUrl, driveUrl } from '../../lib/resource-link.mjs';
+import { resourceUrl } from '../../lib/resource-link.mjs';
 import { safeArchiveUrl } from '../../lib/archive-url.mjs';
 import type { LibraryFile } from '../../lib/resource-library';
 
@@ -43,7 +43,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
   const startServer1 = useCallback(() => {
     if (!file) return;
     setStep('trying_1');
-    const s1Url = driveUrl(file.id, 'download');
+    const s1Url = resourceUrl(file, 'download');
     triggerBrowserDownload(s1Url);
 
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -57,7 +57,7 @@ export default function DownloadModal({ file, onClose }: DownloadModalProps) {
     if (!file) return;
     setStep('trying_2');
     if (timerRef.current) clearTimeout(timerRef.current);
-    const s2Url = resourceUrl(file, 'download', '2') || safeArchiveUrl(file.archiveUrl) || driveUrl(file.id, 'download');
+    const s2Url = resourceUrl(file, 'download', '2');
     triggerBrowserDownload(s2Url);
 
     timerRef.current = setTimeout(() => {

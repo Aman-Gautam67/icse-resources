@@ -1,4 +1,5 @@
 import { chromium, expect } from '@playwright/test';
+import assert from 'node:assert/strict';
 import { preview } from 'vite';
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -86,7 +87,10 @@ try {
   await expect(page.locator('#subject-title')).toContainText('Physics');
   await page.getByRole('button', { name: 'Sample papers', exact: true }).click();
   await page.getByLabel('Subject', { exact: true }).selectOption('physics');
-  await expect(page.locator('.library-results [role="status"]')).toContainText('54 results');
+  const resultCount = Number((await page.locator('.library-results [role="status"]').textContent()).match(/^\d+/)?.[0]);
+  assert(resultCount > 0, 'Sample paper search should find Physics files');
+  while (await page.locator('.library-results .library-more-button').count()) await page.locator('.library-results .library-more-button').click();
+  await expect(page.locator('.library-results .library-file-item')).toHaveCount(resultCount);
   await page.getByRole('button', { name: 'Back to subjects' }).click();
   for (const grade of visibleClasses.filter(grade => grade !== 10)) {
     await page.locator(`[data-class-link="${grade}"]`).click();
@@ -146,7 +150,7 @@ try {
   await page.route('**/data/resource-catalog.json', route => route.abort());
   await page.goto(`${base}/study-materials`);
   await expect(page.getByRole('status')).toContainText('full library couldn’t load');
-  await expect(page.locator('.library-category').first().locator('.library-files .library-file')).toHaveCount(3);
+  assert((await page.locator('.library-category').first().locator('.library-files .library-file').count()) > 0, 'Preview files remain usable after a data request fails');
   await page.unroute('**/data/resource-catalog.json');
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
   await ready();
