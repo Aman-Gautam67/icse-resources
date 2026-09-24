@@ -254,7 +254,7 @@ test('Header includes Donate, Info, Discord, Reddit, and GitHub action triggers'
   assert.match(headerContent, /modal:\s*['"]info['"]/);
   assert.match(headerContent, /discord\.gg\/xGD8SnvuKX/);
   assert.match(headerContent, /reddit\.com\/r\/ICSE/);
-  assert.match(headerContent, /github\.com\/Jivaansh-Yadav\/class-10-icse/);
+  assert.match(headerContent, /github\.com\/Jivaansh-Yadav\/icse-resources/);
 });
 
 test('Header mounts ThemeToggle island with client:load', () => {
